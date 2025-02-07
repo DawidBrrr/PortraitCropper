@@ -1,0 +1,562 @@
+import os
+import shutil
+import customtkinter as ctk
+import tkinter.filedialog as filedialog
+from PIL import Image
+from FaceCropper import Cropper
+
+
+global_input_path = None
+global_output_path = None
+
+
+#InputData Frame
+class InputsFrame(ctk.CTkFrame):
+    def __init__(self, master):
+        super().__init__(master)
+
+        self.grid_columnconfigure((0, 3), weight=1)
+
+        # Face factor
+        self.face_factor_label = ctk.CTkLabel(self, text="Stosunek twarzy do zdjęcia")
+        self.face_factor_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_face_factor = Tooltip(self.face_factor_label,"Jest to stosunek powierzchni jaki zajmuje\n"
+                                                      "twarz względem reszty zdjęcia")
+
+
+        self.face_factor_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.face_factor_slider_value)
+        self.face_factor_slider.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.face_factor_entry = ctk.CTkEntry(self)
+        self.face_factor_entry.grid(row=0, column=2, padx=10, pady=10, sticky="nw")
+        self.face_factor_entry.bind("<Return>", self.face_factor_entry_value)
+
+        # Initialize the entry value to match the slider's initial value
+        self.face_factor_entry.insert(0, str(self.face_factor_slider.get()))
+
+        # Output size of an image
+        self.output_size_label = ctk.CTkLabel(self, text="Wymiary zdjęcia(x,y)")
+        self.output_size_label.grid(row=1, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_size_label = Tooltip(self.output_size_label,"Kolejno x-szerokość, y-wysokosć")
+
+
+        self.output_size_entryx = ctk.CTkEntry(self)
+        self.output_size_entryx.grid(row=1, column=1, padx=10, pady=10, sticky="ne")
+        self.output_size_entryx.insert(0,"1920")
+        self.output_size_entryx.bind("<Return>", self.update_output_size)
+
+        self.output_size_entryy = ctk.CTkEntry(self)
+        self.output_size_entryy.grid(row=1, column=2, padx=10, pady=10, sticky="nw")
+        self.output_size_entryy.insert(0,"1080")
+        self.output_size_entryy.bind("<Return>", self.update_output_size)
+
+        # Unit selection dropdown
+        self.unit_options = ["px", "mm", "cm"]
+        self.unit_var = ctk.StringVar(value=self.unit_options[0])
+        self.unit_menu = ctk.CTkOptionMenu(self, variable=self.unit_var, values=self.unit_options, command=self.unit_changed)
+        self.unit_menu.grid(row=1, column=3, padx=10, pady=10, sticky="nw")
+
+        # Face movement in x and y axis
+        self.face_movement_label = ctk.CTkLabel(self, text="Pozycja Twarzy(x,y)")
+        self.face_movement_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_face_movement_label = Tooltip(self.face_movement_label,"Przesunięcie środka twarzy względem środka zdjęcia\n"
+                                                                            "wprowadzane w pikselach.\n"
+                                                                            "Wartości dodatnie(w prawo,w dół),a ujemne(w lewo,w górę)")
+
+        self.face_movement_entryx = ctk.CTkEntry(self)
+        self.face_movement_entryx.grid(row=2, column=1, padx=10, pady=10, sticky="ne")
+        self.face_movement_entryx.insert(0,"0")
+
+        self.face_movement_entryy = ctk.CTkEntry(self)
+        self.face_movement_entryy.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
+        self.face_movement_entryy.insert(0,"0")
+
+        # DPI change section
+        self.dpi_label = ctk.CTkLabel(self, text="Zmień DPI obrazu")
+        self.dpi_label.grid(row=3, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_dpi_label = Tooltip(self.dpi_label,"kliknij `Zmień DPI` aby je zmienić\n"
+                                                        "dla wszystkich zdjęć w folderze")
+
+        self.dpi_entry = ctk.CTkEntry(self)
+        self.dpi_entry.grid(row=3, column=1, padx=10, pady=10, sticky="ne")
+        self.dpi_entry.insert(0,"96")
+
+        #self.change_dpi_button = ctk.CTkButton(self, text="Zmień DPI", command=self.change_image_dpi)
+        #self.change_dpi_button.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
+
+        #Keep track of current unit
+        self.current_unit = "px"
+
+    def face_factor_slider_value(self, value):
+        self.face_factor_entry.delete(0, ctk.END)
+        self.face_factor_entry.insert(0, str(round(value, 2)))  # Update the entry with the slider value
+
+    def face_factor_entry_value(self, event):
+        try:
+            value = float(self.face_factor_entry.get())
+            if 0 <= value <= 1:  # Ensure the value is within the slider's range
+                self.face_factor_slider.set(value)
+            else:
+                raise ValueError
+        except ValueError:
+            self.face_factor_entry.delete(0, ctk.END)
+            self.face_factor_entry.insert(0, str(self.face_factor_slider.get()))  # Reset to the slider's value if invalid
+
+    def update_output_size(self, event):
+        try:
+            x_value = int(self.output_size_entryx.get())
+            y_value = int(self.output_size_entryy.get())
+            unit = self.unit_var.get()
+            if self.validate_size(x_value) and self.validate_size(y_value):
+                # Handle the x, y values and the unit as needed
+                pass
+            else:
+                raise ValueError
+        except ValueError:
+            self.output_size_entryx.delete(0, ctk.END)
+            self.output_size_entryy.delete(0, ctk.END)
+            self.output_size_entryx.insert(0, "100")
+            self.output_size_entryy.insert(0, "100")
+
+    def unit_changed(self, new_unit):
+        """Convert and update the entry values based on the selected unit."""
+        try:
+            x_value = int(self.output_size_entryx.get())
+            y_value = int(self.output_size_entryy.get())
+            dpi = self.get_dpi(global_input_path)
+
+            if self.current_unit != new_unit:
+                if new_unit == "px":
+                    if self.current_unit == "mm":
+                        x_value = int((x_value / 25.4) * dpi)
+                        y_value = int((y_value / 25.4) * dpi)
+                    elif self.current_unit == "cm":
+                        x_value = int((x_value / 2.54) * dpi)
+                        y_value = int((y_value / 2.54) * dpi)
+                elif new_unit == "mm":
+                    if self.current_unit == "px":
+                        x_value = int((x_value / dpi) * 25.4)
+                        y_value = int((y_value / dpi) * 25.4)
+                    elif self.current_unit == "cm":
+                        x_value = int(x_value * 10)
+                        y_value = int(y_value * 10)
+                elif new_unit == "cm":
+                    if self.current_unit == "px":
+                        x_value = int((x_value / dpi) * 2.54)
+                        y_value = int((y_value / dpi) * 2.54)
+                    elif self.current_unit == "mm":
+                        x_value = int(x_value / 10)
+                        y_value = int(y_value / 10)
+
+                # Update the entry boxes with the new values
+                self.output_size_entryx.delete(0, ctk.END)
+                self.output_size_entryx.insert(0, str(x_value))
+                self.output_size_entryy.delete(0, ctk.END)
+                self.output_size_entryy.insert(0, str(y_value))
+
+                self.current_unit = new_unit  # Update the current unit
+
+        except ValueError:
+            pass
+
+    def validate_size(self, value):
+        # Add validation logic here based on your requirements for size
+        return 1 <= value <= 10000  # Example range
+
+    def get_dpi(self, folder_path):
+        """Get the DPI of the first image in the specified folder."""
+        try:
+            for file_name in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, file_name)
+                if os.path.isfile(file_path):
+                    with Image.open(file_path) as img:
+                        dpi = img.info.get('dpi')
+                        if dpi and len(dpi) > 0:
+                            print(dpi)#DEBUG
+                            return dpi[0]  # Return the DPI if available
+                        else:
+                            print(f"No DPI information found for {file_name}, using default 96 DPI.")
+                            return 96  # Return a default value if no DPI found
+        except Exception as e:
+            print(f"Error accessing image DPI: {e}")
+        return 96  # Return a default value if no image or error
+
+
+    def get_x_in_px(self, folder_path):
+        """Return the x value in pixels based on the selected unit."""
+        try:
+            x_value = int(self.output_size_entryx.get())
+            unit = self.unit_var.get()
+            if unit == "px":
+                return x_value
+            elif unit in ["mm", "cm"]:
+                dpi = self.get_dpi(folder_path)
+                if unit == "mm":
+                    return int((x_value / 25.4) * dpi)  # Convert mm to inches and then to pixels
+                elif unit == "cm":
+                    return int((x_value / 2.54) * dpi)  # Convert cm to inches and then to pixels
+        except ValueError:
+            return 100  # Default to 100 px if invalid
+
+    def get_y_in_px(self, folder_path):
+        """Return the y value in pixels based on the selected unit."""
+        try:
+            y_value = int(self.output_size_entryy.get())
+            unit = self.unit_var.get()
+            if unit == "px":
+                return y_value
+            elif unit in ["mm", "cm"]:
+                dpi = self.get_dpi(folder_path)
+                if unit == "mm":
+                    return int((y_value / 25.4) * dpi)  # Convert mm to inches and then to pixels
+                elif unit == "cm":
+                    return int((y_value / 2.54) * dpi)  # Convert cm to inches and then to pixels
+        except ValueError:
+            return 100  # Default to 100 px if invalid
+
+
+
+#Path Frame
+class PathFrame(ctk.CTkFrame):
+    def __init__(self, master,preview_frame):
+        super().__init__(master)
+
+        self.preview_frame = preview_frame
+
+        # Configure the grid
+        self.grid_columnconfigure(1, weight=1)
+
+        # Input folder path
+        self.input_label = ctk.CTkLabel(self, text="Folder Wejściowy:")
+        self.input_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+
+        self.input_entry = ctk.CTkEntry(self, width=300)
+        self.input_entry.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+
+        self.input_button = ctk.CTkButton(self, text="Wybierz", command=self.browse_input_folder)
+        self.input_button.grid(row=0, column=2, padx=10, pady=10)
+
+        # Output folder path
+        self.output_label = ctk.CTkLabel(self, text="Folder Wyjściowy:")
+        self.output_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
+
+        self.output_entry = ctk.CTkEntry(self, width=300)
+        self.output_entry.grid(row=2, column=1, padx=10, pady=10, sticky="ew")
+
+        self.output_button = ctk.CTkButton(self, text="Wybierz", command=self.browse_output_folder)
+        self.output_button.grid(row=2, column=2, padx=10, pady=10)
+
+        #Frame for displaying images
+
+        self.image_frame = ctk.CTkFrame(self)
+        self.image_labels = []
+        self.image_refs = []  # To keep a reference to CTkImage objects
+
+
+    def browse_input_folder(self):
+        input_path = filedialog.askdirectory()
+        if input_path:
+            self.input_entry.delete(0, ctk.END)
+            self.input_entry.insert(0, input_path)
+
+            self.cleanup_placeholder_folders()
+            self.display_images(input_path)
+
+            global global_input_path
+            global_input_path = input_path
+
+            # Set folder path in the PreviewFrame
+            self.preview_frame.set_folder_path(input_path)
+            self.preview_frame.first_image()
+
+
+    def browse_output_folder(self):
+        output_path = filedialog.askdirectory()
+        if output_path:
+            self.output_entry.delete(0, ctk.END)
+            self.output_entry.insert(0, output_path)
+
+            global global_output_path
+            global_output_path = output_path
+
+    def cleanup_placeholder_folders(self):
+        #Defining Paths
+        internal_data_path = "InternalData"
+        edited_images_placeholder_path = os.path.join(internal_data_path,"Edited IMAGE Placeholder")
+        images_placeholder_path = os.path.join(internal_data_path,"IMAGE Placeholder")
+
+        #cleanup folders
+        for folder in [edited_images_placeholder_path,images_placeholder_path]:
+            if os.path.exists(folder):
+                shutil.rmtree(folder)
+                os.makedirs(folder)#recreating empty folders
+
+    def display_images(self, folder_path):
+        # Make the image frame visible
+        self.image_frame.grid(row=1, column=0, columnspan=3, padx=10, pady=10, sticky="nsew")
+
+        # Clear previous images
+        for label in self.image_labels:
+            label.destroy()
+        self.image_labels.clear()
+        self.image_refs.clear()
+
+        fixed_height = 100  # Fixed height for images
+        # Counter to keep track of number of images displayed
+        image_count = 0
+
+        # Load and display only the first 6 images from the folder
+        for filename in os.listdir(folder_path):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                if image_count >= 6:
+                    break  # Stop after displaying 6 images
+
+                image_path = os.path.join(folder_path, filename)
+                image = Image.open(image_path)
+
+                # Calculate the correct width to maintain aspect ratio
+                aspect_ratio = image.width / image.height
+                new_width = int(fixed_height * aspect_ratio)
+
+                # Resize image while maintaining aspect ratio
+                image = image.resize((new_width, fixed_height))
+
+                # Convert image to CTkImage
+                ctk_image = ctk.CTkImage(light_image=image, size=(new_width, fixed_height))
+
+                # Store a reference to the image
+                self.image_refs.append(ctk_image)
+
+                # Create and pack label for each image
+                label = ctk.CTkLabel(self.image_frame, image=ctk_image, text="")
+                label.pack(side="left", padx=5, pady=5)
+                self.image_labels.append(label)
+
+                image_count += 1  # Increment the counter for each displayed image
+
+
+#Parsing Frame
+
+class AttributeParsingFrame(ctk.CTkFrame):
+    def __init__(self, master, path_frame):
+        super().__init__(master)
+        self.path_frame = path_frame #store reference to path frame
+
+        self.grid_columnconfigure((0,2), weight = 1)
+
+        self.attribute_info = ctk.CTkLabel(self, text = "Podział Cech")
+        self.attribute_info.grid(row = 0 ,column = 0,padx = 10, pady = 10, sticky = "w")
+        #attach tooltip
+        self.tooltip = Tooltip(self.attribute_info,"Wybierz aby podzielić zdjęcia do folderów\n"
+                                                   " w zależności od posiadanych przez nie cech \n")
+        # Scrollable checkboxframe
+        self.scrollable_checkbox_frame = ctk.CTkScrollableFrame(self)
+        self.scrollable_checkbox_frame.grid(row=0, column=1, padx=10, pady=10,rowspan=2, sticky="nsew")
+        #Parse Button
+        self.parse_button = ctk.CTkButton(self,text = "Podziel",command=self.image_parsing)
+        self.parse_button.grid(row=1,column=0,padx=10,pady=10,sticky="w")
+
+        # Define attributes with their corresponding numbers
+        self.attributes = {
+            "skóra": [1],"brwi": [2,3],
+            "oczy": [4,5], "okulary": [6],
+            "uszy": [7,8], "kolczyki": [9],
+            "nos": [10], "zęby": [11], "wargi": [12,13],
+            "szyja": [14], "naszyjnik": [15],
+            "ubrania": [16], "włosy": [17], "czapka": [18]
+        }
+        #attribute groups to be passed into face_crop
+        self.attr_groups = {}
+        # Populate the scrollable frame with checkboxes
+        self.checkboxes = {}
+        for i, (attribute, num) in enumerate(self.attributes.items()):
+            var = ctk.StringVar(value="off")
+            checkbox = ctk.CTkCheckBox(self.scrollable_checkbox_frame, text=f"{attribute}",
+                                       variable=var, onvalue="on", offvalue="off",
+                                       command=self.on_checkbox_change)
+            checkbox.grid(row=i, column=0, padx=10, pady=5,sticky="w")
+            self.checkboxes[attribute] = var
+
+    def on_checkbox_change(self):
+        #clear the attr_groups
+        self.attr_groups.clear()
+
+        for attr, nums in self.attributes.items():
+            if self.checkboxes[attr].get() == "on":
+                self.attr_groups[attr] = nums
+                self.attr_groups[f"bez_{attr}"] = [-num for num in nums]
+        print(f"Selected attributes: {self.attr_groups}")
+        # Add your logic here to pass the attr_groups as an argument or process further
+
+    def image_parsing(self):
+        parser = Cropper(
+            det_threshold=None,
+            attr_groups=self.attr_groups,
+        )
+        parser.process_dir(input_dir=self.path_frame.output_entry.get(),output_dir=self.path_frame.output_entry.get())
+
+
+
+
+#Preview Frame
+class PreviewFrame(ctk.CTkFrame):
+    def __init__(self, master, input_data_frame):
+        super().__init__(master)
+        self.input_data_frame = input_data_frame  # Store reference to input_data_frame
+
+
+        self.grid_columnconfigure(1, weight=1)
+
+        # Preview button
+        self.preview_button = ctk.CTkButton(self, text="Podgląd", command = self.preview_image)
+        self.preview_button.grid(row=0, column=1, padx=10, pady=10, sticky="n")
+        # Label to display the first image
+        self.first_image_label = ctk.CTkLabel(self, text="")
+        self.first_image_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew",columnspan = 3)
+        # Label to display the preview image
+        self.preview_image_label = ctk.CTkLabel(self, text ="")
+        self.preview_image_label.grid(row = 2, column = 0, padx = 10,pady= 10, sticky = "nsew", columnspan = 3)
+
+        # Placeholder for storing the folder path
+        self.folder_path = None
+
+    def set_folder_path(self, folder_path):
+        """Sets the folder path where images are located."""
+        self.folder_path = folder_path
+
+    def first_image(self):
+        """Displays the first image from the set folder and copies it to the placeholder folder."""
+        # Set your placeholder folder path here
+        self.fixed_height = 400  # Set the fixed height here
+        self.placeholder_folder = "InternalData/IMAGE Placeholder"
+        if not os.path.exists(self.placeholder_folder):
+            os.makedirs(self.placeholder_folder)
+
+        if not self.folder_path:
+            print("IMAGE Placeholder folder not found")
+            return
+
+        # Find the first image in the folder
+        first_image_path = None
+        for filename in os.listdir(self.folder_path):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                first_image_path = os.path.join(self.folder_path, filename)
+                break  # We only need the first image
+
+        if first_image_path:
+            # Display the image
+            image = Image.open(first_image_path)
+
+            # Calculate the correct width to maintain aspect ratio
+            aspect_ratio = image.width / image.height
+            new_width = int(self.fixed_height * aspect_ratio)
+
+            # Resize image while maintaining aspect ratio
+            image = image.resize((new_width, self.fixed_height))
+
+            # Convert image to CTkImage
+            ctk_image = ctk.CTkImage(light_image=image, size=(new_width, self.fixed_height))
+
+            # Display the image
+            self.first_image_label.configure(image=ctk_image)
+            self.first_image_label.image = ctk_image  # Keep a reference to avoid garbage collection
+
+            # Copy the image to the placeholder folder
+            destination_path = os.path.join(self.placeholder_folder, os.path.basename(first_image_path))
+            shutil.copy(first_image_path, destination_path)
+
+    def preview_image(self):
+        """Displays the second image from the 'Edited IMAGE Placeholder' folder."""
+        self.fixed_height = 400  # Set the fixed height here
+        self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
+        #Croping the preview image
+
+        cropper = Cropper(face_factor=float(self.input_data_frame.face_factor_entry.get()),
+                          output_size=(int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),int(self.input_data_frame.get_y_in_px(self.placeholder_folder))),
+                          strategy="largest",
+                          padding="replicate",
+                          translation=(int(self.input_data_frame.face_movement_entryx.get()),int(self.input_data_frame.face_movement_entryy.get())))
+        cropper.process_dir(input_dir=self.placeholder_folder, output_dir=self.edited_folder_path)
+
+
+        if not os.path.exists(self.edited_folder_path):
+            print("Edited IMAGE Placeholder folder not found.")
+            return
+
+        # Find the first image in the edited folder
+        preview_image_path = None
+        for filename in os.listdir(self.edited_folder_path):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                preview_image_path = os.path.join(self.edited_folder_path, filename)
+                break  # We only need the first image for preview
+
+        if preview_image_path:
+            # Display the image
+            image = Image.open(preview_image_path)
+
+            # Calculate the correct width to maintain aspect ratio
+            aspect_ratio = image.width / image.height
+            new_width = int(self.fixed_height * aspect_ratio)
+
+            # Resize image while maintaining aspect ratio
+            image = image.resize((new_width, self.fixed_height))
+
+            # Convert image to CTkImage
+            ctk_image = ctk.CTkImage(light_image=image, size=(new_width, self.fixed_height))
+
+            # Display the image
+            self.preview_image_label.configure(image=ctk_image)
+            self.preview_image_label.image = ctk_image  # Keep a reference to avoid garbage collection
+
+
+#ToolTip class
+class Tooltip:
+    def __init__(self, widget, text, delay=500):
+        self.widget = widget
+        self.text = text
+        self.delay = delay  # delay in milliseconds
+        self.tooltip_window = None
+        self.showing = False  # To track whether the tooltip is scheduled to be shown
+        self.widget.bind("<Enter>", self.schedule_tooltip)
+        self.widget.bind("<Leave>", self.hide_tooltip)
+        self.widget.bind("<Motion>", self.check_leave)
+
+    def schedule_tooltip(self, event=None):
+        # Schedule the tooltip to be shown after the delay
+        self.showing = True
+        self.widget.after(self.delay, self.show_tooltip)
+
+    def show_tooltip(self, event=None):
+        # Show the tooltip only if the mouse is still hovering over the widget
+        if self.showing and not self.tooltip_window:
+            x, y, _, _ = self.widget.bbox("insert")
+            x += self.widget.winfo_rootx() + 25
+            y += self.widget.winfo_rooty() + 25
+
+            self.tooltip_window = tw = ctk.CTkToplevel(self.widget)
+            tw.wm_overrideredirect(True)
+            tw.wm_geometry(f"+{x}+{y}")
+
+            label = ctk.CTkLabel(tw, text=self.text, corner_radius=5)
+            label.pack()
+
+    def hide_tooltip(self, event=None):
+        # Hide the tooltip and cancel the scheduled show if the mouse leaves
+        self.showing = False
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
+
+    def check_leave(self, event=None):
+        # Get the boundaries of the widget
+        widget_bounds = (
+            self.widget.winfo_rootx(),
+            self.widget.winfo_rooty(),
+            self.widget.winfo_rootx() + self.widget.winfo_width(),
+            self.widget.winfo_rooty() + self.widget.winfo_height(),
+        )
+
+        # Check if the cursor is outside the widget's boundaries
+        if not (widget_bounds[0] <= event.x_root <= widget_bounds[2] and widget_bounds[1] <= event.y_root <= widget_bounds[3]):
+            self.hide_tooltip()
+
