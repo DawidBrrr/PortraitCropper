@@ -441,6 +441,7 @@ class Cropper():
         # Pass STD landmarks as target landms
         self.landmarks_target = std_landmarks
 
+    #old method quite substantial quality loss
     def crop_align(
             self,
             images: np.ndarray | list[np.ndarray],
@@ -537,7 +538,7 @@ class Cropper():
                 transform_matrix,
                 self.output_size,
                 borderMode=border_mode,
-                flags=cv2.INTER_LANCZOS4
+                flags=cv2.INTER_LINEAR
             ))
 
 

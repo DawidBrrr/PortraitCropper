@@ -27,57 +27,55 @@ class App(ctk.CTk):
         self.geometry("600x400")
         self.after(0, lambda: self.state('zoomed'))#whole screen cover
 
+        # Create main scrollable container
+        self.main_container = ctk.CTkScrollableFrame(self)
+        self.main_container.grid(row=0, column=0, sticky="nsew")
+        self.main_container.grid_columnconfigure((0,2), weight=1)
+        
+        # Configure main window grid
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         self.title_font = ctk.CTkFont(family="Oswald",size = 50,weight = "bold")
         self.text_font = ctk.CTkFont(family = "Arial",size = 18)
-        self.grid_columnconfigure((0,2), weight = 1)
-        #TitleLabel
-        #self.title_label = ctk.CTkLabel(self, text = "Kaidr",width = 120, height = 25,corner_radius = 8,text_color= "#3a7ebf",font = self.title_font,fg_color = "gray16")
-        #self.title_label.grid(row = 1, column = 0, padx = 20,pady = 20, sticky = "sw")#LOGO NOT VISIBLE FOR NOW ROW=0 -> ROW=1
-        #Top Toolbar Frame
-        self.toolbar_frame = ctk.CTkFrame(self)
+
+        # Move all existing frames to main_container
+        self.toolbar_frame = ctk.CTkFrame(self.main_container)
         self.toolbar_frame.grid_columnconfigure((0,2),weight=1)
-        self.toolbar_frame.grid(row = 0,column = 0,padx = 20,pady =20,sticky = "nsew",columnspan = 3)
+        self.toolbar_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew", columnspan=3)
 
-        #Frame for data
-        self.input_data_frame = InputsFrame(self)
-        self.input_data_frame.grid(row = 3,column = 2, padx = 20,pady = 20,sticky = "nse")
+        self.input_data_frame = InputsFrame(self.main_container)
+        self.input_data_frame.grid(row=3, column=2, padx=20, pady=20, sticky="nse")
 
-        #Rotating buttons frame
-        self.flipping_frame = ctk.CTkFrame(self)
-        self.flipping_frame.grid_columnconfigure((0,1),weight=1)
-        self.flipping_frame.grid(row = 4,column = 2,padx = 20,pady = 20,sticky = "nse")
+        self.flipping_frame = ctk.CTkFrame(self.main_container)
+        self.flipping_frame.grid_columnconfigure((0,1), weight=1)
+        self.flipping_frame.grid(row=4, column=2, padx=20, pady=20, sticky="nse")
 
-        # Frame for Preview
-        self.preview_frame = PreviewFrame(self, self.input_data_frame)
-        self.preview_frame.grid(row=1, column=0, padx=20, pady=20, sticky="nsew",rowspan = 5,columnspan = 2)
+        self.preview_frame = PreviewFrame(self.main_container, self.input_data_frame)
+        self.preview_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew", rowspan=5, columnspan=2)
 
-        #Frame for paths
-        self.path_frame = PathFrame(self,self.preview_frame)
-        self.path_frame.grid(row = 2,column = 2, padx = 20,pady = 20,sticky = "nse")
+        self.path_frame = PathFrame(self.main_container, self.preview_frame)
+        self.path_frame.grid(row=2, column=2, padx=20, pady=20, sticky="nse")
 
-        # Frame for AttributeParsing
-        self.attribute_parsing_frame = AttributeParsingFrame(self,self.path_frame)
+        self.attribute_parsing_frame = AttributeParsingFrame(self.main_container, self.path_frame)
         self.attribute_parsing_frame.grid(row=5, column=2, padx=20, pady=20, sticky="nse")
 
-        #Crop button
+        # Move buttons to toolbar_frame
         self.crop_button = ctk.CTkButton(self.toolbar_frame, text="Skadruj", command=self.CropButton)
         self.crop_button.grid(row=0, column=2, padx=20, pady=20, sticky="se")
 
-        #UI Scaling Dropdown
         self.scaling_options = ["50%","60%","75%","100%","150%","200%"]
         self.scaling_var = ctk.StringVar(value="100%") #100% scaling by default
         self.scale_dropdown = ctk.CTkOptionMenu(self.toolbar_frame,values=self.scaling_options, command = self.change_scaling,variable=self.scaling_var)
         self.scale_dropdown.grid(row = 0,column = 2,padx=20,pady=20,sticky="s")
 
-
-        # Rotate images button
+        # Move rotation buttons to flipping_frame
         self.rotate_images_button = ctk.CTkButton(self.flipping_frame, text="Obróć", command=self.rotate_images)
         self.rotate_images_button.grid(row=0, column=0, padx=10, pady=10, sticky="e")
 
-        # flip image(mirror image)
         self.flip_images_button = ctk.CTkButton(self.flipping_frame, text="Lustrzane", command=self.flip_images)
         self.flip_images_button.grid(row=0, column=1, padx=10, pady=10, sticky="e")
-
+    
         #Bind the close event to cleanup
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
