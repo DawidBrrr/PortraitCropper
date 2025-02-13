@@ -4,6 +4,7 @@ import customtkinter as ctk
 import tkinter.filedialog as filedialog
 from PIL import Image
 from FaceCropper import Cropper
+from CropSense import image_processing 
 
 
 global_input_path = None
@@ -469,14 +470,29 @@ class PreviewFrame(ctk.CTkFrame):
         """Displays the second image from the 'Edited IMAGE Placeholder' folder."""
         self.fixed_height = 400  # Set the fixed height here
         self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
+        self.bugs_folder_path = "InternalData/Errors"
         #Croping the preview image
-
+        """
         cropper = Cropper(face_factor=float(self.input_data_frame.face_factor_entry.get()),
                           output_size=(int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),int(self.input_data_frame.get_y_in_px(self.placeholder_folder))),
                           strategy="largest",
                           padding="replicate",
                           translation=(int(self.input_data_frame.face_movement_entryx.get()),int(self.input_data_frame.face_movement_entryy.get())))
         cropper.process_dir(input_dir=self.placeholder_folder, output_dir=self.edited_folder_path)
+        """
+
+        self.image_path = os.path.join(self.placeholder_folder, os.listdir(self.placeholder_folder)[0])
+
+        image_processing.process_image(image_path=self.image_path,
+                                       error_folder=self.bugs_folder_path,
+                                       output_folder=self.edited_folder_path,
+                                       debug_output=self.bugs_folder_path,
+                                       preview_output_res=256,
+                                       preview_debug_max_res=512,
+                                       show_preview=False,
+                                       croptype=1,
+                                       top_margin_value = 0.25,
+                                       bottom_margin_value = 0.25)
 
 
         if not os.path.exists(self.edited_folder_path):
