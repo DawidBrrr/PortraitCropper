@@ -2,8 +2,7 @@ confidence_level = 0.5
 
 # Output cropped resolution (pixel)
 #output_res = 1080
-res_x = 512
-res_y = 768
+
 preview_output_res = 256
 preview_debug_max_res = 640
 

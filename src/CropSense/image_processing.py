@@ -22,6 +22,8 @@ def process_image(image_path,
                   debug_output,                  
                   preview_output_res,
                   preview_debug_max_res,
+                  res_x,
+                  res_y,
                   show_preview,
                   croptype, 
                   top_margin_value, 
@@ -105,6 +107,8 @@ def process_image(image_path,
                                             startY,
                                             top_margin_value,
                                             bottom_margin_value,
+                                            res_x,
+                                            res_y,
                                             image,                                             
                                             output_folder,
                                             output_image_path,
@@ -132,6 +136,8 @@ def process_image(image_path,
                                             startY,
                                             top_margin_value,
                                             bottom_margin_value,
+                                            res_x,
+                                            res_y,
                                             image,                                             
                                             output_folder,
                                             output_image_path,
@@ -159,6 +165,8 @@ def process_image(image_path,
                                             startY,
                                             top_margin_value,
                                             bottom_margin_value,
+                                            res_x,
+                                            res_y,
                                             image,                                         
                                             output_folder,
                                             output_image_path,
@@ -192,6 +200,8 @@ def process_image(image_path,
                                         startY,
                                         top_margin_value,
                                         bottom_margin_value,
+                                        res_x,
+                                        res_y,
                                         image,                                 
                                         output_folder,
                                         output_image_path,
@@ -219,6 +229,8 @@ def draw_rectangle(endX,
                    startY,
                    top_margin_value,
                    bottom_margin_value,
+                   res_x,
+                   res_y,
                    image, 
                    output_folder,
                    output_image_path,
@@ -237,7 +249,7 @@ def draw_rectangle(endX,
     height = endY - startY
 
     # Calculate aspect ratio based on target resolution
-    target_aspect_ratio = variable.res_x / variable.res_y
+    target_aspect_ratio = res_x / res_y
 
     # Calculate the coordinates for the rectangular region
     rect_center_x = (endX + startX) // 2
@@ -286,7 +298,7 @@ def draw_rectangle(endX,
         is_error = True
     else:
         if not is_error:
-            resized_image = cv2.resize(rect_region, (variable.res_x, variable.res_y))
+            resized_image = cv2.resize(rect_region, (res_x, res_y))
             cv2.imwrite(output_image_path, resized_image)
     
     # Calculate the thickness of the rectangle based on the image resolution

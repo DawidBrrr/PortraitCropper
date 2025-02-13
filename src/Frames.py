@@ -489,10 +489,12 @@ class PreviewFrame(ctk.CTkFrame):
                                        debug_output=self.bugs_folder_path,
                                        preview_output_res=256,
                                        preview_debug_max_res=512,
+                                       res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
+                                       res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),
                                        show_preview=False,
-                                       croptype=1,
-                                       top_margin_value = 0.25,
-                                       bottom_margin_value = 0.25)
+                                       croptype=2,
+                                       top_margin_value = float(self.input_data_frame.face_factor_entry.get()),
+                                       bottom_margin_value = float(self.input_data_frame.face_factor_entry.get()))
 
 
         if not os.path.exists(self.edited_folder_path):
