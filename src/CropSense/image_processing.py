@@ -268,17 +268,28 @@ def draw_rectangle(endX,
     rect_lower_right_x = rect_upper_left_x + rect_width
     rect_lower_right_y = rect_upper_left_y + rect_height
 
-    # Calculate margins based on the crop dimensions
+    # Calculate margins based on the target aspect ratio
     top_margin = int(rect_height * top_margin_value)
     bottom_margin = int(rect_height * bottom_margin_value)
-    left_margin = int(rect_width * bottom_margin_value)
-    right_margin = int(rect_width * bottom_margin_value)
-
-    # Calculate the coordinates with margins
-    margin_upper_left_x = max(rect_upper_left_x - left_margin, 0)
+    
+    # Calculate side margins to maintain aspect ratio
+    total_height = rect_height + top_margin + bottom_margin
+    target_width = int(total_height * target_aspect_ratio)
+    side_margin = (target_width - rect_width) // 2
+    
+    # Apply margins while maintaining aspect ratio
+    margin_upper_left_x = max(rect_center_x - (target_width // 2), 0)
     margin_upper_left_y = max(rect_upper_left_y - top_margin, 0)
-    margin_lower_right_x = min(rect_lower_right_x + right_margin, image.shape[1])
+    margin_lower_right_x = min(margin_upper_left_x + target_width, image.shape[1])
     margin_lower_right_y = min(rect_lower_right_y + bottom_margin, image.shape[0])
+    
+    # Adjust if we hit image boundaries
+    if margin_upper_left_x == 0 or margin_lower_right_x == image.shape[1]:
+        # Recalculate height to maintain aspect ratio
+        available_width = margin_lower_right_x - margin_upper_left_x
+        target_height = int(available_width / target_aspect_ratio)
+        margin_upper_left_y = max(rect_center_y - (target_height // 2), 0)
+        margin_lower_right_y = min(margin_upper_left_y + target_height, image.shape[0])
 
     # Calculate the center of the second box
     second_box_center_x = (margin_upper_left_x + margin_lower_right_x) // 2

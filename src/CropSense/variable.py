@@ -14,11 +14,3 @@ min_upperbody_res_y = 64
 min_fullbody_res_x = 32
 min_fullbody_res_y = 32
 
-input_folder = "input"
-output_upperbody_folder = "output/upperbody_cropped"
-debug_upperbody_folder = "output/upperbody_debug"
-output_face_folder = "output/face_cropped"
-debug_face_folder = "output/face_debug"
-output_fullbody_folder = "output/fullbody_cropped"
-debug_fullbody_folder = "output/fullbody_debug"
-error_folder = "output/error_images"

@@ -18,36 +18,51 @@ class InputsFrame(ctk.CTkFrame):
 
         self.grid_columnconfigure((0, 3), weight=1)
 
-        # Face factor
-        self.face_factor_label = ctk.CTkLabel(self, text="Stosunek twarzy do zdjęcia")
-        self.face_factor_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
-        self.tooltip_face_factor = Tooltip(self.face_factor_label,"Jest to stosunek powierzchni jaki zajmuje\n"
-                                                      "twarz względem reszty zdjęcia")
+        # Top margin
+        self.top_margin_label = ctk.CTkLabel(self, text="Górny margines")
+        self.top_margin_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_top_margin = Tooltip(self.top_margin_label, 
+            "Określa wielkość górnego marginesu\nwzględem wykrytej twarzy")
 
+        self.top_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.top_margin_slider_value)
+        self.top_margin_slider.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.face_factor_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.face_factor_slider_value)
-        self.face_factor_slider.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        self.top_margin_entry = ctk.CTkEntry(self)
+        self.top_margin_entry.grid(row=0, column=2, padx=10, pady=10, sticky="nw")
+        self.top_margin_entry.bind("<Return>", self.top_margin_entry_value)
 
-        self.face_factor_entry = ctk.CTkEntry(self)
-        self.face_factor_entry.grid(row=0, column=2, padx=10, pady=10, sticky="nw")
-        self.face_factor_entry.bind("<Return>", self.face_factor_entry_value)
+        # Initialize the top entry value
+        self.top_margin_entry.insert(0, str(self.top_margin_slider.get()))
 
-        # Initialize the entry value to match the slider's initial value
-        self.face_factor_entry.insert(0, str(self.face_factor_slider.get()))
+        # Bottom margin 
+        self.bottom_margin_label = ctk.CTkLabel(self, text="Dolny margines")
+        self.bottom_margin_label.grid(row=1, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_bottom_margin = Tooltip(self.bottom_margin_label,
+            "Określa wielkość dolnego marginesu\nwzględem wykrytej twarzy")
 
-        # Output size of an image
+        self.bottom_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.bottom_margin_slider_value)
+        self.bottom_margin_slider.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.bottom_margin_entry = ctk.CTkEntry(self)
+        self.bottom_margin_entry.grid(row=1, column=2, padx=10, pady=10, sticky="nw")
+        self.bottom_margin_entry.bind("<Return>", self.bottom_margin_entry_value)
+
+        # Initialize the bottom entry value
+        self.bottom_margin_entry.insert(0, str(self.bottom_margin_slider.get()))
+
+        # Output size of an image (moved to row 2)
         self.output_size_label = ctk.CTkLabel(self, text="Wymiary zdjęcia(x,y)")
-        self.output_size_label.grid(row=1, column=0, padx=10, pady=10, sticky="ne")
+        self.output_size_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_size_label = Tooltip(self.output_size_label,"Kolejno x-szerokość, y-wysokosć")
 
 
         self.output_size_entryx = ctk.CTkEntry(self)
-        self.output_size_entryx.grid(row=1, column=1, padx=10, pady=10, sticky="ne")
+        self.output_size_entryx.grid(row=2, column=1, padx=10, pady=10, sticky="ne")
         self.output_size_entryx.insert(0,"1920")
         self.output_size_entryx.bind("<Return>", self.update_output_size)
 
         self.output_size_entryy = ctk.CTkEntry(self)
-        self.output_size_entryy.grid(row=1, column=2, padx=10, pady=10, sticky="nw")
+        self.output_size_entryy.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
         self.output_size_entryy.insert(0,"1080")
         self.output_size_entryy.bind("<Return>", self.update_output_size)
 
@@ -55,28 +70,14 @@ class InputsFrame(ctk.CTkFrame):
         self.unit_options = ["px", "mm", "cm"]
         self.unit_var = ctk.StringVar(value=self.unit_options[0])
         self.unit_menu = ctk.CTkOptionMenu(self, variable=self.unit_var, values=self.unit_options, command=self.unit_changed)
-        self.unit_menu.grid(row=1, column=3, padx=10, pady=10, sticky="nw")
-
-        # Face movement in x and y axis
-        self.face_movement_label = ctk.CTkLabel(self, text="Pozycja Twarzy(x,y)")
-        self.face_movement_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
-        self.tooltip_face_movement_label = Tooltip(self.face_movement_label,"Przesunięcie środka twarzy względem środka zdjęcia\n"
-                                                                            "wprowadzane w pikselach.\n"
-                                                                            "Wartości dodatnie(w prawo,w dół),a ujemne(w lewo,w górę)")
-
-        self.face_movement_entryx = ctk.CTkEntry(self)
-        self.face_movement_entryx.grid(row=2, column=1, padx=10, pady=10, sticky="ne")
-        self.face_movement_entryx.insert(0,"0")
-
-        self.face_movement_entryy = ctk.CTkEntry(self)
-        self.face_movement_entryy.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
-        self.face_movement_entryy.insert(0,"0")
+        self.unit_menu.grid(row=2, column=3, padx=10, pady=10, sticky="nw")
+    
 
         # DPI change section
         self.dpi_label = ctk.CTkLabel(self, text="Zmień DPI obrazu")
         self.dpi_label.grid(row=3, column=0, padx=10, pady=10, sticky="ne")
-        self.tooltip_dpi_label = Tooltip(self.dpi_label,"kliknij `Zmień DPI` aby je zmienić\n"
-                                                        "dla wszystkich zdjęć w folderze")
+        self.tooltip_dpi_label = Tooltip(self.dpi_label,"Zmienia DPI wszystkich\n"
+                                                        "zdjęć w folderze na tą wartość")
 
         self.dpi_entry = ctk.CTkEntry(self)
         self.dpi_entry.grid(row=3, column=1, padx=10, pady=10, sticky="ne")
@@ -88,21 +89,35 @@ class InputsFrame(ctk.CTkFrame):
         #Keep track of current unit
         self.current_unit = "px"
 
-    def face_factor_slider_value(self, value):
-        self.face_factor_entry.delete(0, ctk.END)
-        self.face_factor_entry.insert(0, str(round(value, 2)))  # Update the entry with the slider value
+    def top_margin_slider_value(self, value):
+        self.top_margin_entry.delete(0, ctk.END)
+        self.top_margin_entry.insert(0, str(round(value, 2)))
 
-    def face_factor_entry_value(self, event):
+    def top_margin_entry_value(self, event):
         try:
-            value = float(self.face_factor_entry.get())
-            if 0 <= value <= 1:  # Ensure the value is within the slider's range
-                self.face_factor_slider.set(value)
+            value = float(self.top_margin_entry.get())
+            if 0 <= value <= 1:
+                self.top_margin_slider.set(value)
             else:
                 raise ValueError
         except ValueError:
-            self.face_factor_entry.delete(0, ctk.END)
-            self.face_factor_entry.insert(0, str(self.face_factor_slider.get()))  # Reset to the slider's value if invalid
+            self.top_margin_entry.delete(0, ctk.END)
+            self.top_margin_entry.insert(0, str(self.top_margin_slider.get()))
 
+    def bottom_margin_slider_value(self, value):
+        self.bottom_margin_entry.delete(0, ctk.END)
+        self.bottom_margin_entry.insert(0, str(round(value, 2)))
+
+    def bottom_margin_entry_value(self, event):
+        try:
+            value = float(self.bottom_margin_entry.get())
+            if 0 <= value <= 1:
+                self.bottom_margin_slider.set(value)
+            else:
+                raise ValueError
+        except ValueError:
+            self.bottom_margin_entry.delete(0, ctk.END)
+            self.bottom_margin_entry.insert(0, str(self.bottom_margin_slider.get()))
     def update_output_size(self, event):
         try:
             x_value = int(self.output_size_entryx.get())
@@ -472,14 +487,6 @@ class PreviewFrame(ctk.CTkFrame):
         self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
         self.bugs_folder_path = "InternalData/Debug"
         #Croping the preview image
-        """
-        cropper = Cropper(face_factor=float(self.input_data_frame.face_factor_entry.get()),
-                          output_size=(int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),int(self.input_data_frame.get_y_in_px(self.placeholder_folder))),
-                          strategy="largest",
-                          padding="replicate",
-                          translation=(int(self.input_data_frame.face_movement_entryx.get()),int(self.input_data_frame.face_movement_entryy.get())))
-        cropper.process_dir(input_dir=self.placeholder_folder, output_dir=self.edited_folder_path)
-        """
 
         self.image_path = os.path.join(self.placeholder_folder, os.listdir(self.placeholder_folder)[0])
 
@@ -493,8 +500,8 @@ class PreviewFrame(ctk.CTkFrame):
                                        res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),
                                        show_preview=False,
                                        croptype=2,
-                                       top_margin_value = float(self.input_data_frame.face_factor_entry.get()),
-                                       bottom_margin_value = float(self.input_data_frame.face_factor_entry.get()))
+                                       top_margin_value = float(self.input_data_frame.top_margin_entry.get()),
+                                       bottom_margin_value = float(self.input_data_frame.bottom_margin_entry.get()))
 
 
         if not os.path.exists(self.edited_folder_path):
