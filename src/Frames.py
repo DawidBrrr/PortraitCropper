@@ -470,7 +470,7 @@ class PreviewFrame(ctk.CTkFrame):
         """Displays the second image from the 'Edited IMAGE Placeholder' folder."""
         self.fixed_height = 400  # Set the fixed height here
         self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
-        self.bugs_folder_path = "InternalData/Errors"
+        self.bugs_folder_path = "InternalData/Debug"
         #Croping the preview image
         """
         cropper = Cropper(face_factor=float(self.input_data_frame.face_factor_entry.get()),

@@ -1,30 +1,51 @@
-from FaceCropper import Cropper
+from CropSense import image_processing
 import threading
 from Popups import ProgressBarPopup
 import os
 from PIL import Image
 
 
-
 class CropperClass:
-    def __init__(self,input_path,output_path,face_factor,output_size,translation):
+    def __init__(self,input_path,output_path,debug_output,preview_output_res,preview_debug_max_res,res_x,res_y,show_preview,croptype,top_margin_value,bottom_margin_value):
         self.input_path = input_path
         self.output_path = output_path
-        self.face_factor = face_factor
-        self.output_size = output_size
-        self.translation = translation
+        self.debug_output = debug_output
+        self.preview_output_res = preview_output_res
+        self.preview_debug_max_res = preview_debug_max_res
+        self.res_x = res_x
+        self.res_y = res_y
+        self.show_preview = show_preview
+        self.croptype = croptype
+        self.top_margin_value = top_margin_value
+        self.bottom_margin_value = bottom_margin_value
 
-
-    def CropProcess(self,FaceFactor: float, OutputSize: tuple[int, int], input_path: str, output_path: str,Translation : tuple[int,int]):
-        cropper = Cropper(output_size=OutputSize, face_factor=FaceFactor, strategy="largest",translation=Translation,padding="replicate")
-        cropper.process_dir(input_dir=input_path, output_dir=output_path)
+    
+    def CropProcess(self,input_path,output_path,debug_output,preview_output_res,preview_debug_max_res,res_x,res_y,show_preview,croptype,top_margin_value,bottom_margin_value):
+        input_files = [os.path.join(input_path, file) for file in os.listdir(input_path)]
+        try:
+            for image_path in input_files:
+                image_processing.process_image(image_path=image_path,
+                                        error_folder=debug_output,
+                                        output_folder=output_path,
+                                        debug_output=debug_output,
+                                        preview_output_res=preview_output_res,
+                                        preview_debug_max_res=preview_debug_max_res,
+                                        res_x=res_x,
+                                        res_y=res_y,
+                                        show_preview=show_preview,
+                                        croptype=croptype,
+                                        top_margin_value = top_margin_value,
+                                        bottom_margin_value = bottom_margin_value)
+        except Exception as e:
+            print(f"Error in Cropper: {e}")
+        
 
 
     def CropFaces(self,master):
 
         def RunCropProcess():
             try:
-                self.CropProcess(self.face_factor,self.output_size, self.input_path, self.output_path, self.translation)
+                self.CropProcess(self.input_path,self.output_path,self.debug_output,self.preview_output_res,self.preview_debug_max_res,self.res_x,self.res_y,self.show_preview,self.croptype,self.top_margin_value,self.bottom_margin_value)
 
             except Exception as e:
                 print(f"Error in Cropper: {e}")
@@ -38,6 +59,9 @@ class CropperClass:
             threading.Thread(target=RunCropProcess).start()
         except Exception as e:
             print(f"Multithreading Error: {e}")
+
+
+
 
     def change_image_dpi(self):
         """Change the DPI of an image based on the user's input."""

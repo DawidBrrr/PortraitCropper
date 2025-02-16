@@ -94,11 +94,17 @@ class App(ctk.CTk):
             messagebox.showwarning("Nie można kontynuować", "Wprowadź folder wyjściowy")
 
         else:
-            cropper = CropperClass(self.path_frame.input_entry.get(),
-                                   self.path_frame.output_entry.get(),
-                                   float(self.input_data_frame.face_factor_entry.get()),
-                                   (int(self.input_data_frame.get_x_in_px(self.path_frame.input_entry.get())),int(self.input_data_frame.get_y_in_px(self.path_frame.input_entry.get()))),
-                                   (int(self.input_data_frame.face_movement_entryx.get()),int(self.input_data_frame.face_movement_entryy.get())))
+            cropper = CropperClass(input_path=self.path_frame.input_entry.get(),
+                                   output_path=self.path_frame.output_entry.get(),
+                                   debug_output="InternalData/Debug",
+                                   preview_output_res=256,
+                                   preview_debug_max_res=512,
+                                   res_x=int(self.input_data_frame.get_x_in_px(self.path_frame.input_entry.get())),
+                                   res_y=int(self.input_data_frame.get_y_in_px(self.path_frame.input_entry.get())),
+                                   show_preview=False,
+                                   croptype=2,
+                                   top_margin_value=float(self.input_data_frame.face_factor_entry.get()),
+                                   bottom_margin_value=float(self.input_data_frame.face_factor_entry.get()))                                                                   
             cropper.CropFaces(self)
 
     def on_closing(self):
@@ -110,9 +116,10 @@ class App(ctk.CTk):
         internal_data_path = "InternalData"
         edited_images_placeholder_path = os.path.join(internal_data_path,"Edited IMAGE Placeholder")
         images_placeholder_path = os.path.join(internal_data_path,"IMAGE Placeholder")
+        debug_placeholder_path = os.path.join(internal_data_path,"Debug")
 
         #cleanup folders
-        for folder in [edited_images_placeholder_path,images_placeholder_path]:
+        for folder in [edited_images_placeholder_path,images_placeholder_path,debug_placeholder_path]:
             if os.path.exists(folder):
                 shutil.rmtree(folder)
                 os.makedirs(folder)#recreating empty folders
