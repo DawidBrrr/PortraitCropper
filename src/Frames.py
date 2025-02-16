@@ -493,12 +493,9 @@ class PreviewFrame(ctk.CTkFrame):
         image_processing.process_image(image_path=self.image_path,
                                        error_folder=self.bugs_folder_path,
                                        output_folder=self.edited_folder_path,
-                                       debug_output=self.bugs_folder_path,
-                                       #preview_output_res=256,
-                                       #preview_debug_max_res=512,
+                                       debug_output=self.bugs_folder_path,                                       
                                        res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
-                                       res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),
-                                       #show_preview=False,                                    
+                                       res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),                                                            
                                        top_margin_value = float(self.input_data_frame.top_margin_entry.get()),
                                        bottom_margin_value = float(self.input_data_frame.bottom_margin_entry.get()))
 

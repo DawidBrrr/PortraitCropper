@@ -6,34 +6,26 @@ from PIL import Image
 
 
 class CropperClass:
-    def __init__(self,input_path,output_path,debug_output,preview_output_res,preview_debug_max_res,res_x,res_y,show_preview,croptype,top_margin_value,bottom_margin_value):
+    def __init__(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value):
         self.input_path = input_path
         self.output_path = output_path
-        self.debug_output = debug_output
-        self.preview_output_res = preview_output_res
-        self.preview_debug_max_res = preview_debug_max_res
+        self.debug_output = debug_output        
         self.res_x = res_x
-        self.res_y = res_y
-        self.show_preview = show_preview
-        self.croptype = croptype
+        self.res_y = res_y     
         self.top_margin_value = top_margin_value
         self.bottom_margin_value = bottom_margin_value
 
     
-    def CropProcess(self,input_path,output_path,debug_output,preview_output_res,preview_debug_max_res,res_x,res_y,show_preview,croptype,top_margin_value,bottom_margin_value):
+    def CropProcess(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value):
         input_files = [os.path.join(input_path, file) for file in os.listdir(input_path)]
         try:
             for image_path in input_files:
                 image_processing.process_image(image_path=image_path,
                                         error_folder=debug_output,
                                         output_folder=output_path,
-                                        debug_output=debug_output,
-                                        preview_output_res=preview_output_res,
-                                        preview_debug_max_res=preview_debug_max_res,
+                                        debug_output=debug_output,                                        
                                         res_x=res_x,
-                                        res_y=res_y,
-                                        show_preview=show_preview,
-                                        croptype=croptype,
+                                        res_y=res_y,                                                                                
                                         top_margin_value = top_margin_value,
                                         bottom_margin_value = bottom_margin_value)
         except Exception as e:
@@ -45,7 +37,7 @@ class CropperClass:
 
         def RunCropProcess():
             try:
-                self.CropProcess(self.input_path,self.output_path,self.debug_output,self.preview_output_res,self.preview_debug_max_res,self.res_x,self.res_y,self.show_preview,self.croptype,self.top_margin_value,self.bottom_margin_value)
+                self.CropProcess(self.input_path,self.output_path,self.debug_output,self.res_x,self.res_y,self.top_margin_value,self.bottom_margin_value)
 
             except Exception as e:
                 print(f"Error in Cropper: {e}")
