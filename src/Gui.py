@@ -97,12 +97,11 @@ class App(ctk.CTk):
             cropper = CropperClass(input_path=self.path_frame.input_entry.get(),
                                    output_path=self.path_frame.output_entry.get(),
                                    debug_output="InternalData/Debug",
-                                   preview_output_res=256,
-                                   preview_debug_max_res=512,
+                                   #preview_output_res=256,
+                                   #preview_debug_max_res=512,
                                    res_x=int(self.input_data_frame.get_x_in_px(self.path_frame.input_entry.get())),
                                    res_y=int(self.input_data_frame.get_y_in_px(self.path_frame.input_entry.get())),
-                                   show_preview=False,
-                                   croptype=2,
+                                   #show_preview=False,                                   
                                    top_margin_value=float(self.input_data_frame.top_margin_entry.get()),
                                    bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()))                                                                   
             cropper.CropFaces(self)

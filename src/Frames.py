@@ -494,12 +494,11 @@ class PreviewFrame(ctk.CTkFrame):
                                        error_folder=self.bugs_folder_path,
                                        output_folder=self.edited_folder_path,
                                        debug_output=self.bugs_folder_path,
-                                       preview_output_res=256,
-                                       preview_debug_max_res=512,
+                                       #preview_output_res=256,
+                                       #preview_debug_max_res=512,
                                        res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
                                        res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),
-                                       show_preview=False,
-                                       croptype=2,
+                                       #show_preview=False,                                    
                                        top_margin_value = float(self.input_data_frame.top_margin_entry.get()),
                                        bottom_margin_value = float(self.input_data_frame.bottom_margin_entry.get()))
 
