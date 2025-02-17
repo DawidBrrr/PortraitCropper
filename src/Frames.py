@@ -50,19 +50,35 @@ class InputsFrame(ctk.CTkFrame):
         # Initialize the bottom entry value
         self.bottom_margin_entry.insert(0, str(self.bottom_margin_slider.get()))
 
-        # Output size of an image (moved to row 2)
+        # Left Right margin
+        self.left_right_margin_label = ctk.CTkLabel(self, text="Lewo/Prawo margines")
+        self.left_right_margin_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_left_right_margin = Tooltip(self.left_right_margin_label,
+            "Określa margines z lewej bądź prawej\nwzględem wykrytej twarzy")
+
+        self.left_right_margin_slider = ctk.CTkSlider(self, from_=-1, to=1, command=self.left_right_slider_margin_value)
+        self.left_right_margin_slider.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.left_right_margin_entry = ctk.CTkEntry(self)
+        self.left_right_margin_entry.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
+        self.left_right_margin_entry.bind("<Return>", self.left_right_entry_margin_value)
+
+        # Initialize the left right entry value
+        self.left_right_margin_entry.insert(0, str(self.left_right_margin_slider.get()))
+
+        # Output size of an image 
         self.output_size_label = ctk.CTkLabel(self, text="Wymiary zdjęcia(x,y)")
-        self.output_size_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
+        self.output_size_label.grid(row=3, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_size_label = Tooltip(self.output_size_label,"Kolejno x-szerokość, y-wysokosć")
 
 
         self.output_size_entryx = ctk.CTkEntry(self)
-        self.output_size_entryx.grid(row=2, column=1, padx=10, pady=10, sticky="ne")
+        self.output_size_entryx.grid(row=3, column=1, padx=10, pady=10, sticky="ne")
         self.output_size_entryx.insert(0,"1920")
         self.output_size_entryx.bind("<Return>", self.update_output_size)
 
         self.output_size_entryy = ctk.CTkEntry(self)
-        self.output_size_entryy.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
+        self.output_size_entryy.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
         self.output_size_entryy.insert(0,"1080")
         self.output_size_entryy.bind("<Return>", self.update_output_size)
 
@@ -70,17 +86,17 @@ class InputsFrame(ctk.CTkFrame):
         self.unit_options = ["px", "mm", "cm"]
         self.unit_var = ctk.StringVar(value=self.unit_options[0])
         self.unit_menu = ctk.CTkOptionMenu(self, variable=self.unit_var, values=self.unit_options, command=self.unit_changed)
-        self.unit_menu.grid(row=2, column=3, padx=10, pady=10, sticky="nw")
+        self.unit_menu.grid(row=3, column=3, padx=10, pady=10, sticky="nw")
     
 
         # DPI change section
         self.dpi_label = ctk.CTkLabel(self, text="Zmień DPI obrazu")
-        self.dpi_label.grid(row=3, column=0, padx=10, pady=10, sticky="ne")
+        self.dpi_label.grid(row=4, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_dpi_label = Tooltip(self.dpi_label,"Zmienia DPI wszystkich\n"
                                                         "zdjęć w folderze na tą wartość")
 
         self.dpi_entry = ctk.CTkEntry(self)
-        self.dpi_entry.grid(row=3, column=1, padx=10, pady=10, sticky="ne")
+        self.dpi_entry.grid(row=4, column=1, padx=10, pady=10, sticky="ne")
         self.dpi_entry.insert(0,"96")
 
         #self.change_dpi_button = ctk.CTkButton(self, text="Zmień DPI", command=self.change_image_dpi)
@@ -118,6 +134,23 @@ class InputsFrame(ctk.CTkFrame):
         except ValueError:
             self.bottom_margin_entry.delete(0, ctk.END)
             self.bottom_margin_entry.insert(0, str(self.bottom_margin_slider.get()))
+
+
+    def left_right_slider_margin_value(self, value):
+        self.left_right_margin_entry.delete(0, ctk.END)
+        self.left_right_margin_entry.insert(0, str(round(value, 2)))
+
+    def left_right_entry_margin_value(self, event):
+        try:
+            value = float(self.left_right_margin_entry.get())
+            if -1 <= value <= 1:
+                self.left_right_margin_slider.set(value)
+            else:
+                raise ValueError
+        except ValueError:
+            self.left_right_margin_entry.delete(0, ctk.END)
+            self.left_right_margin_entry.insert(0, str(self.left_right_margin_slider.get()))
+
     def update_output_size(self, event):
         try:
             x_value = int(self.output_size_entryx.get())
@@ -497,7 +530,8 @@ class PreviewFrame(ctk.CTkFrame):
                                        res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
                                        res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),                                                            
                                        top_margin_value = float(self.input_data_frame.top_margin_entry.get()),
-                                       bottom_margin_value = float(self.input_data_frame.bottom_margin_entry.get()))
+                                       bottom_margin_value = float(self.input_data_frame.bottom_margin_entry.get()),
+                                       left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()))
 
 
         if not os.path.exists(self.edited_folder_path):

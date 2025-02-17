@@ -23,7 +23,8 @@ def process_image(image_path,
                   res_x,
                   res_y,                    
                   top_margin_value, 
-                  bottom_margin_value,):
+                  bottom_margin_value,
+                  left_right_margin_value=0.0):
     error_count = 0
     endX = 0
     endY = 0
@@ -74,6 +75,7 @@ def process_image(image_path,
                                     startY,
                                     top_margin_value,
                                     bottom_margin_value,
+                                    left_right_margin_value,
                                     image,                                     
                                     output_folder,
                                     output_image_path,
@@ -100,6 +102,7 @@ def process_image(image_path,
                                         startY,
                                         top_margin_value,
                                         bottom_margin_value,
+                                        left_right_margin_value,
                                         res_x,
                                         res_y,
                                         image,                                             
@@ -133,6 +136,7 @@ def process_image(image_path,
                                         startY,
                                         top_margin_value,
                                         bottom_margin_value,
+                                        left_right_margin_value,
                                         res_x,
                                         res_y,
                                         image,                                 
@@ -159,6 +163,7 @@ def draw_rectangle(endX,
                    startY,
                    top_margin_value,
                    bottom_margin_value,
+                   left_right_margin_value,
                    res_x,
                    res_y,
                    image, 
@@ -225,6 +230,17 @@ def draw_rectangle(endX,
     shift_amount = second_box_center_x - ((margin_upper_left_x + margin_lower_right_x) // 2)
     margin_upper_left_x = max(margin_upper_left_x + shift_amount, 0)
     margin_lower_right_x = min(margin_lower_right_x + shift_amount, image.shape[1])
+
+    # Modify the horizontal shift calculation to include left_right_margin_value
+    horizontal_shift = int(rect_width * left_right_margin_value * -1)
+    margin_upper_left_x = max(margin_upper_left_x + horizontal_shift, 0)
+    margin_lower_right_x = min(margin_lower_right_x + horizontal_shift, image.shape[1])
+
+    # If the shift would push the box outside the image bounds, adjust it
+    if margin_upper_left_x == 0:
+        margin_lower_right_x = min(target_width, image.shape[1])
+    elif margin_lower_right_x == image.shape[1]:
+        margin_upper_left_x = max(image.shape[1] - target_width, 0)
 
     # Crop the image to the rectangular region with margin
     rect_region = image[margin_upper_left_y:margin_lower_right_y, 
