@@ -45,7 +45,7 @@ class App(ctk.CTk):
         self.toolbar_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew", columnspan=3)
 
         self.input_data_frame = InputsFrame(self.main_container)
-        self.input_data_frame.grid(row=3, column=2, padx=20, pady=20, sticky="nse")
+        self.input_data_frame.grid(row=3, column=2, padx=20, pady=20, sticky="nse")        
 
         self.flipping_frame = ctk.CTkFrame(self.main_container)
         self.flipping_frame.grid_columnconfigure((0,1), weight=1)
@@ -57,9 +57,10 @@ class App(ctk.CTk):
         self.path_frame = PathFrame(self.main_container, self.preview_frame)
         self.path_frame.grid(row=2, column=2, padx=20, pady=20, sticky="nse")
 
+        """
         self.attribute_parsing_frame = AttributeParsingFrame(self.main_container, self.path_frame)
         self.attribute_parsing_frame.grid(row=5, column=2, padx=20, pady=20, sticky="nse")
-
+        """
         # Move buttons to toolbar_frame
         self.crop_button = ctk.CTkButton(self.toolbar_frame, text="Skadruj", command=self.CropButton)
         self.crop_button.grid(row=0, column=2, padx=20, pady=20, sticky="se")

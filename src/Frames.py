@@ -74,7 +74,7 @@ class InputsFrame(ctk.CTkFrame):
 
         self.output_size_entryx = ctk.CTkEntry(self)
         self.output_size_entryx.grid(row=3, column=1, padx=10, pady=10, sticky="ne")
-        self.output_size_entryx.insert(0,"1920")
+        self.output_size_entryx.insert(0,"1080")
         self.output_size_entryx.bind("<Return>", self.update_output_size)
 
         self.output_size_entryy = ctk.CTkEntry(self)
@@ -314,9 +314,8 @@ class PathFrame(ctk.CTkFrame):
             global global_input_path
             global_input_path = input_path
 
-            # Set folder path in the PreviewFrame
+            # Set folder path in the PreviewFrame (this will trigger auto-preview)
             self.preview_frame.set_folder_path(input_path)
-            self.preview_frame.first_image()
 
 
     def browse_output_folder(self):
@@ -451,72 +450,48 @@ class AttributeParsingFrame(ctk.CTkFrame):
 class PreviewFrame(ctk.CTkFrame):
     def __init__(self, master, input_data_frame):
         super().__init__(master)
-        self.input_data_frame = input_data_frame  # Store reference to input_data_frame
-
+        self.input_data_frame = input_data_frame
 
         self.grid_columnconfigure(1, weight=1)
 
         # Preview button
-        self.preview_button = ctk.CTkButton(self, text="Podgląd", command = self.preview_image)
+        self.preview_button = ctk.CTkButton(self, text="Podgląd", command=self.preview_image)
         self.preview_button.grid(row=0, column=1, padx=10, pady=10, sticky="n")
-        # Label to display the first image
-        self.first_image_label = ctk.CTkLabel(self, text="")
-        self.first_image_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew",columnspan = 3)
-        # Label to display the preview image
-        self.preview_image_label = ctk.CTkLabel(self, text ="")
-        self.preview_image_label.grid(row = 2, column = 0, padx = 10,pady= 10, sticky = "nsew", columnspan = 3)
+
+        # Single label for preview image
+        self.preview_image_label = ctk.CTkLabel(self, text="")
+        self.preview_image_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew", columnspan=3)
 
         # Placeholder for storing the folder path
         self.folder_path = None
 
     def set_folder_path(self, folder_path):
-        """Sets the folder path where images are located."""
+        """Sets the folder path where images are located and triggers initial preview."""
         self.folder_path = folder_path
+        self.copy_first_image()
+        self.preview_image()  # Auto-preview when folder is selected
 
-    def first_image(self):
-        """Displays the first image from the set folder and copies it to the placeholder folder."""
-        # Set your placeholder folder path here
-        self.fixed_height = 400  # Set the fixed height here
+    def copy_first_image(self):
+        """Copies the first image to the placeholder folder without displaying it."""
         self.placeholder_folder = "InternalData/IMAGE Placeholder"
         if not os.path.exists(self.placeholder_folder):
             os.makedirs(self.placeholder_folder)
 
         if not self.folder_path:
-            print("IMAGE Placeholder folder not found")
+            print("No input folder selected")
             return
 
-        # Find the first image in the folder
-        first_image_path = None
+        # Find and copy the first image
         for filename in os.listdir(self.folder_path):
             if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
                 first_image_path = os.path.join(self.folder_path, filename)
-                break  # We only need the first image
-
-        if first_image_path:
-            # Display the image
-            image = Image.open(first_image_path)
-
-            # Calculate the correct width to maintain aspect ratio
-            aspect_ratio = image.width / image.height
-            new_width = int(self.fixed_height * aspect_ratio)
-
-            # Resize image while maintaining aspect ratio
-            image = image.resize((new_width, self.fixed_height))
-
-            # Convert image to CTkImage
-            ctk_image = ctk.CTkImage(light_image=image, size=(new_width, self.fixed_height))
-
-            # Display the image
-            self.first_image_label.configure(image=ctk_image)
-            self.first_image_label.image = ctk_image  # Keep a reference to avoid garbage collection
-
-            # Copy the image to the placeholder folder
-            destination_path = os.path.join(self.placeholder_folder, os.path.basename(first_image_path))
-            shutil.copy(first_image_path, destination_path)
+                destination_path = os.path.join(self.placeholder_folder, os.path.basename(first_image_path))
+                shutil.copy(first_image_path, destination_path)
+                break
 
     def preview_image(self):
         """Displays the second image from the 'Edited IMAGE Placeholder' folder."""
-        self.fixed_height = 400  # Set the fixed height here
+        self.fixed_height = 600  # Set the fixed height here TODO: Make this dynamic
         self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
         self.bugs_folder_path = "InternalData/Debug"
         #Croping the preview image
