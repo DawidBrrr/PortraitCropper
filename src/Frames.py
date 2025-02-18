@@ -3,7 +3,6 @@ import shutil
 import customtkinter as ctk
 import tkinter.filedialog as filedialog
 from PIL import Image
-from FaceCropper import Cropper
 from CropSense import image_processing 
 
 
@@ -384,7 +383,7 @@ class PathFrame(ctk.CTkFrame):
 
 
 #Parsing Frame
-
+"""
 class AttributeParsingFrame(ctk.CTkFrame):
     def __init__(self, master, path_frame):
         super().__init__(master)
@@ -444,7 +443,7 @@ class AttributeParsingFrame(ctk.CTkFrame):
         parser.process_dir(input_dir=self.path_frame.output_entry.get(),output_dir=self.path_frame.output_entry.get())
 
 
-
+"""
 
 #Preview Frame
 class PreviewFrame(ctk.CTkFrame):
@@ -465,6 +464,14 @@ class PreviewFrame(ctk.CTkFrame):
         # Placeholder for storing the folder path
         self.folder_path = None
 
+        self.placeholder_folder = "InternalData/IMAGE Placeholder"
+        self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
+        self.bugs_folder_path = "InternalData/Debug"
+
+        for folder in [self.edited_folder_path, self.bugs_folder_path]:
+            if not os.path.exists(folder):
+                os.makedirs(folder)
+
     def set_folder_path(self, folder_path):
         """Sets the folder path where images are located and triggers initial preview."""
         self.folder_path = folder_path
@@ -472,8 +479,7 @@ class PreviewFrame(ctk.CTkFrame):
         self.preview_image()  # Auto-preview when folder is selected
 
     def copy_first_image(self):
-        """Copies the first image to the placeholder folder without displaying it."""
-        self.placeholder_folder = "InternalData/IMAGE Placeholder"
+        """Copies the first image to the placeholder folder without displaying it."""        
         if not os.path.exists(self.placeholder_folder):
             os.makedirs(self.placeholder_folder)
 
@@ -491,9 +497,7 @@ class PreviewFrame(ctk.CTkFrame):
 
     def preview_image(self):
         """Displays the second image from the 'Edited IMAGE Placeholder' folder."""
-        self.fixed_height = 600  # Set the fixed height here TODO: Make this dynamic
-        self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
-        self.bugs_folder_path = "InternalData/Debug"
+        self.fixed_height = 600  # Set the fixed height here TODO: Make this dynamic       
         #Croping the preview image
 
         self.image_path = os.path.join(self.placeholder_folder, os.listdir(self.placeholder_folder)[0])

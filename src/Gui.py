@@ -3,7 +3,7 @@ import os
 import shutil
 from Frames import InputsFrame
 from Frames import PathFrame
-from Frames import AttributeParsingFrame
+#from Frames import AttributeParsingFrame
 from Frames import PreviewFrame
 from Cropper import CropperClass
 import cv2
