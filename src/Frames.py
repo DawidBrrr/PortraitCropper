@@ -2,6 +2,8 @@ import os
 import shutil
 import customtkinter as ctk
 import tkinter.filedialog as filedialog
+import threading
+from queue import Queue
 from PIL import Image
 from CropSense import image_processing 
 
@@ -104,15 +106,25 @@ class InputsFrame(ctk.CTkFrame):
         #Keep track of current unit
         self.current_unit = "px"
 
+        self.preview_frame = None
+
+    def set_preview_frame(self, preview_frame):
+        self.preview_frame = preview_frame
+
     def top_margin_slider_value(self, value):
         self.top_margin_entry.delete(0, ctk.END)
         self.top_margin_entry.insert(0, str(round(value, 2)))
+        if self.preview_frame:
+            self.preview_frame.preview_image()
 
     def top_margin_entry_value(self, event):
         try:
             value = float(self.top_margin_entry.get())
             if 0 <= value <= 1:
                 self.top_margin_slider.set(value)
+                if self.preview_frame:
+                    self.preview_frame.preview_image()
+                
             else:
                 raise ValueError
         except ValueError:
@@ -122,12 +134,17 @@ class InputsFrame(ctk.CTkFrame):
     def bottom_margin_slider_value(self, value):
         self.bottom_margin_entry.delete(0, ctk.END)
         self.bottom_margin_entry.insert(0, str(round(value, 2)))
+        if self.preview_frame:
+            self.preview_frame.preview_image()
+        
 
     def bottom_margin_entry_value(self, event):
         try:
             value = float(self.bottom_margin_entry.get())
             if 0 <= value <= 1:
                 self.bottom_margin_slider.set(value)
+                if self.preview_frame:
+                    self.preview_frame.preview_image()
             else:
                 raise ValueError
         except ValueError:
@@ -138,12 +155,16 @@ class InputsFrame(ctk.CTkFrame):
     def left_right_slider_margin_value(self, value):
         self.left_right_margin_entry.delete(0, ctk.END)
         self.left_right_margin_entry.insert(0, str(round(value, 2)))
+        if self.preview_frame:
+            self.preview_frame.preview_image()
 
     def left_right_entry_margin_value(self, event):
         try:
             value = float(self.left_right_margin_entry.get())
             if -1 <= value <= 1:
                 self.left_right_margin_slider.set(value)
+                if self.preview_frame:
+                    self.preview_frame.preview_image()
             else:
                 raise ValueError
         except ValueError:
@@ -156,8 +177,8 @@ class InputsFrame(ctk.CTkFrame):
             y_value = int(self.output_size_entryy.get())
             unit = self.unit_var.get()
             if self.validate_size(x_value) and self.validate_size(y_value):
-                # Handle the x, y values and the unit as needed
-                pass
+                if self.preview_frame:
+                    self.preview_frame.preview_image()
             else:
                 raise ValueError
         except ValueError:
@@ -450,6 +471,7 @@ class PreviewFrame(ctk.CTkFrame):
     def __init__(self, master, input_data_frame):
         super().__init__(master)
         self.input_data_frame = input_data_frame
+        self.input_data_frame.set_preview_frame(self)
 
         self.grid_columnconfigure(1, weight=1)
 
@@ -465,12 +487,25 @@ class PreviewFrame(ctk.CTkFrame):
         self.folder_path = None
 
         self.placeholder_folder = "InternalData/IMAGE Placeholder"
-        self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  # TO DO makedir whole folder upon startup/make dynamic
+        self.edited_folder_path = "InternalData/Edited IMAGE Placeholder"  
         self.bugs_folder_path = "InternalData/Debug"
 
         for folder in [self.edited_folder_path, self.bugs_folder_path]:
             if not os.path.exists(folder):
                 os.makedirs(folder)
+
+        self.processing_queue = Queue(maxsize=1)
+        self.is_processing = False
+
+        self.current_image = None
+        self.current_pil_image = None
+        self.fixed_height = 600
+        
+        # Add loading indicator
+        self.loading_label = ctk.CTkLabel(self, text="Przetwarzanie...")
+        self.loading_label.grid(row=0, column=0, padx=10, pady=10, sticky="n")
+        self.loading_label.grid_remove()  # Hide initially
+        
 
     def set_folder_path(self, folder_path):
         """Sets the folder path where images are located and triggers initial preview."""
@@ -496,51 +531,103 @@ class PreviewFrame(ctk.CTkFrame):
                 break
 
     def preview_image(self):
-        """Displays the second image from the 'Edited IMAGE Placeholder' folder."""
-        self.fixed_height = 600  # Set the fixed height here TODO: Make this dynamic       
-        #Croping the preview image
-
-        self.image_path = os.path.join(self.placeholder_folder, os.listdir(self.placeholder_folder)[0])
-
-        image_processing.process_image(image_path=self.image_path,
-                                       error_folder=self.bugs_folder_path,
-                                       output_folder=self.edited_folder_path,
-                                       debug_output=self.bugs_folder_path,                                       
-                                       res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
-                                       res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),                                                            
-                                       top_margin_value = float(self.input_data_frame.top_margin_entry.get()),
-                                       bottom_margin_value = float(self.input_data_frame.bottom_margin_entry.get()),
-                                       left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()))
-
-
-        if not os.path.exists(self.edited_folder_path):
-            print("Edited IMAGE Placeholder folder not found.")
+        # If already processing, just update the queue
+        if self.is_processing:
+            try:
+                # Clear queue if full
+                if self.processing_queue.full():
+                    self.processing_queue.get_nowait()
+                self.processing_queue.put_nowait(True)
+            except:
+                pass
             return
 
-        # Find the first image in the edited folder
-        preview_image_path = None
-        for filename in os.listdir(self.edited_folder_path):
-            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                preview_image_path = os.path.join(self.edited_folder_path, filename)
-                break  # We only need the first image for preview
+        # Start processing thread
+        self.is_processing = True
+        self.loading_label.grid()  # Show loading indicator
+        threading.Thread(target=self._process_image, daemon=True).start()
 
-        if preview_image_path:
-            # Display the image
-            image = Image.open(preview_image_path)
+    def _process_image(self):
+        """Process image in background thread"""
+        try:
+            self.image_path = os.path.join(self.placeholder_folder, os.listdir(self.placeholder_folder)[0])
 
-            # Calculate the correct width to maintain aspect ratio
-            aspect_ratio = image.width / image.height
-            new_width = int(self.fixed_height * aspect_ratio)
+            image_processing.process_image(
+                image_path=self.image_path,
+                error_folder=self.bugs_folder_path,
+                output_folder=self.edited_folder_path,
+                debug_output=self.bugs_folder_path,                                       
+                res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
+                res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),                                                            
+                top_margin_value=float(self.input_data_frame.top_margin_entry.get()),
+                bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
+                left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get())
+            )
 
-            # Resize image while maintaining aspect ratio
-            image = image.resize((new_width, self.fixed_height))
+            # Schedule UI update in main thread
+            self.after(0, self._update_preview)
+        except Exception as e:
+            print(f"Error processing image: {e}")
+            self.after(0, self._finish_processing)
 
-            # Convert image to CTkImage
-            ctk_image = ctk.CTkImage(light_image=image, size=(new_width, self.fixed_height))
+    def _update_preview(self):
+        """Update UI with processed image"""
+        try:
+            # Find first image in edited folder
+            for filename in os.listdir(self.edited_folder_path):
+                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                    preview_image_path = os.path.join(self.edited_folder_path, filename)
+                    
+                    # Close previous PIL image if it exists
+                    if self.current_pil_image:
+                        self.current_pil_image.close()
+                    
+                    # Load and process image
+                    image = Image.open(preview_image_path)
+                    self.current_pil_image = image  # Store reference to close later
+                    
+                    aspect_ratio = image.width / image.height
+                    new_width = int(self.fixed_height * aspect_ratio)
+                    resized_image = image.resize((new_width, self.fixed_height))
+                    
+                    # Create new CTkImage
+                    self.current_image = ctk.CTkImage(
+                        light_image=resized_image, 
+                        size=(new_width, self.fixed_height)
+                    )
+                    
+                    # Update label
+                    self.preview_image_label.configure(image=self.current_image)
+                    
+                    # Close resized image
+                    resized_image.close()
+                    break
+        except Exception as e:
+            print(f"Error updating preview: {e}")
+        finally:
+            self._finish_processing()
 
-            # Display the image
-            self.preview_image_label.configure(image=ctk_image)
-            self.preview_image_label.image = ctk_image  # Keep a reference to avoid garbage collection
+    def _finish_processing(self):
+        """Clean up after processing"""
+        self.loading_label.grid_remove()  # Hide loading indicator
+        self.is_processing = False
+        
+        # Check if more updates are queued
+        try:
+            if not self.processing_queue.empty():
+                self.processing_queue.get()
+                self.preview_image()  # Process next update
+        except:
+            pass
+
+    def cleanup(self):
+        """Clean up image resources"""
+        if self.current_pil_image:
+            self.current_pil_image.close()
+        self.current_pil_image = None
+        self.current_image = None
+        if self.preview_image_label:
+            self.preview_image_label.configure(image=None)
 
 
 #ToolTip class
