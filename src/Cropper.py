@@ -20,7 +20,7 @@ class CropperClass:
     def CropProcess(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value):
         input_files = [os.path.join(input_path, file) for file in os.listdir(input_path)]
         try:
-            for image_path in input_files:
+            for image_path in input_files: # TODO in output folder create 2 folders success and error
                 image_processing.process_image(image_path=image_path,
                                         error_folder=debug_output,
                                         output_folder=output_path,

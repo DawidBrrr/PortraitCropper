@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import os
+import sys
 import shutil
 import logging
 from datetime import datetime
@@ -13,19 +14,56 @@ from PIL import Image
 from tkinter import messagebox
 
 # Setup logging configuration 
-if not logging.getLogger().handlers:
+def setup_logging():
     if not os.path.exists('logs'):
         os.makedirs('logs')
     
     log_filename = f'logs/portrait_cropper_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=[
-            logging.FileHandler(log_filename, encoding='utf-8'),
-            logging.StreamHandler()
-        ]
-    )
+    
+    # Configure root logger with detailed formatting
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(name)s - %(message)s\n%(pathname)s:%(lineno)d')
+    
+    # File handler
+    file_handler = logging.FileHandler(log_filename, encoding='utf-8', mode='w')
+    file_handler.setFormatter(formatter)
+    root_logger.addHandler(file_handler)
+    
+    # Capture stdout and stderr
+    class StreamToLogger:
+        def __init__(self, logger, level):
+            self.logger = logger
+            self.level = level
+            self.linebuf = ''
+
+        def write(self, buf):
+            for line in buf.rstrip().splitlines():
+                self.logger.log(self.level, line.rstrip())
+
+        def flush(self):
+            pass
+
+    # Replace stdout and stderr with logging
+    sys.stdout = StreamToLogger(root_logger, logging.INFO)
+    sys.stderr = StreamToLogger(root_logger, logging.ERROR)
+
+    # Capture PIL warnings
+    logging.getLogger('PIL').setLevel(logging.WARNING)
+
+    # Handle uncaught exceptions
+    def handle_exception(exc_type, exc_value, exc_traceback):
+        if issubclass(exc_type, KeyboardInterrupt):
+            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            return
+        
+        logging.error("Uncaught exception:", exc_info=(exc_type, exc_value, exc_traceback))
+
+    sys.excepthook = handle_exception
+
+# Initialize logging if not already configured
+if not logging.getLogger().handlers:
+    setup_logging()
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -212,7 +250,8 @@ class App(ctk.CTk):
         }
         selected_scaling = scaling_values.get(choice,1.0)
         ctk.set_widget_scaling(selected_scaling) 
+        self.preview_frame._update_preview()
 
-        
-                 
+
+
 
