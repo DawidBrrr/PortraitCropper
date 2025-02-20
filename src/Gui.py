@@ -1,6 +1,8 @@
 import customtkinter as ctk
 import os
 import shutil
+import logging
+from datetime import datetime
 from Frames import InputsFrame
 from Frames import PathFrame
 #from Frames import AttributeParsingFrame
@@ -10,7 +12,20 @@ import cv2
 from PIL import Image
 from tkinter import messagebox
 
-
+# Setup logging configuration 
+if not logging.getLogger().handlers:
+    if not os.path.exists('logs'):
+        os.makedirs('logs')
+    
+    log_filename = f'logs/portrait_cropper_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log'
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        handlers=[
+            logging.FileHandler(log_filename, encoding='utf-8'),
+            logging.StreamHandler()
+        ]
+    )
 
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme("blue")
@@ -22,6 +37,7 @@ global_dpi = None
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
+        logging.info("Initializing main application window")
 
         self.title("Kaidr")
         self.geometry("600x400")
@@ -195,5 +211,8 @@ class App(ctk.CTk):
             "200%": 2
         }
         selected_scaling = scaling_values.get(choice,1.0)
-        ctk.set_widget_scaling(selected_scaling)
+        ctk.set_widget_scaling(selected_scaling) 
+
+        
+                 
 
