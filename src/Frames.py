@@ -192,7 +192,7 @@ class InputsFrame(ctk.CTkFrame):
         try:
             x_value = int(self.output_size_entryx.get())
             y_value = int(self.output_size_entryy.get())
-            dpi = self.get_dpi(global_input_path)
+            dpi = int(self.dpi_entry.get())
 
             if self.current_unit != new_unit:
                 if new_unit == "px":
@@ -232,6 +232,7 @@ class InputsFrame(ctk.CTkFrame):
         # Add validation logic here based on your requirements for size
         return 1 <= value <= 10000  # Example range
 
+    #Legacy TODO fix it
     def get_dpi(self, folder_path):
         """Get the DPI of the first image in the specified folder."""
         try:
@@ -259,7 +260,7 @@ class InputsFrame(ctk.CTkFrame):
             if unit == "px":
                 return x_value
             elif unit in ["mm", "cm"]:
-                dpi = self.get_dpi(folder_path)
+                dpi = int(self.dpi_entry.get())
                 if unit == "mm":
                     return int((x_value / 25.4) * dpi)  # Convert mm to inches and then to pixels
                 elif unit == "cm":
@@ -275,7 +276,7 @@ class InputsFrame(ctk.CTkFrame):
             if unit == "px":
                 return y_value
             elif unit in ["mm", "cm"]:
-                dpi = self.get_dpi(folder_path)
+                dpi = int(self.dpi_entry.get())
                 if unit == "mm":
                     return int((y_value / 25.4) * dpi)  # Convert mm to inches and then to pixels
                 elif unit == "cm":
@@ -336,6 +337,7 @@ class PathFrame(ctk.CTkFrame):
 
             # Set folder path in the PreviewFrame (this will trigger auto-preview)
             self.preview_frame.set_folder_path(input_path)
+            
 
 
     def browse_output_folder(self):

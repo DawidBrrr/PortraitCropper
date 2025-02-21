@@ -54,7 +54,7 @@ def setup_logging():
     # Handle uncaught exceptions
     def handle_exception(exc_type, exc_value, exc_traceback):
         if issubclass(exc_type, KeyboardInterrupt):
-            sys.__excepthook__(exc_type, exc_value, exc_traceback)
+            sys.__excepthook(exc_type, exc_value, exc_traceback)
             return
         
         logging.error("Uncaught exception:", exc_info=(exc_type, exc_value, exc_traceback))
@@ -176,7 +176,7 @@ class App(ctk.CTk):
                 shutil.rmtree(folder)
                 os.makedirs(folder)#recreating empty folders
 
-    #Rotate images 90 degrees
+    #Rotate images 90 degrees TODO fix buggy rotation
     def rotate_images(self):
         if self.path_frame.input_entry.get() == None:
             print("Select an input path")
@@ -204,8 +204,7 @@ class App(ctk.CTk):
                     # Save the flipped image, replacing the original image
                     cv2.imwrite(file_path, rotated_image)
                     self.path_frame.display_images(input_folder)
-                    self.preview_frame.set_folder_path(self.path_frame.input_entry.get())
-                    self.preview_frame.first_image()
+                    self.preview_frame.set_folder_path(self.path_frame.input_entry.get())                   
 
 
     #Flip images / mirror image
@@ -237,20 +236,55 @@ class App(ctk.CTk):
                     # Save the flipped image, replacing the original image
                     cv2.imwrite(file_path, flipped_image)
                     self.path_frame.display_images(input_folder)
-                    self.preview_frame.set_folder_path(self.path_frame.input_entry.get())
-                    self.preview_frame.first_image()
-    def change_scaling(self,choice):
-        scaling_values = {
-            "50%": 0.5,
-            "60%": 0.6,
-            "75%": 0.75,
-            "100%": 1,
-            "150%": 1.5,
-            "200%": 2
-        }
-        selected_scaling = scaling_values.get(choice,1.0)
-        ctk.set_widget_scaling(selected_scaling) 
-        self.preview_frame._update_preview()
+                    self.preview_frame.set_folder_path(self.path_frame.input_entry.get())                    
+    
+    def change_scaling(self, choice):
+        try:
+            scaling_values = {
+                "50%": 0.5,
+                "60%": 0.6,
+                "75%": 0.75,
+                "100%": 1,
+                "150%": 1.5,
+                "200%": 2
+            }
+            selected_scaling = scaling_values.get(choice, 1.0)
+            logging.info(f"Changing scaling to {choice} ({selected_scaling})")
+
+            # Clear existing preview
+            if hasattr(self.preview_frame, '_current_image'):
+                self.preview_frame.current_image = None
+            
+            # Destroy and recreate preview frame
+            self.preview_frame.grid_forget()
+            self.preview_frame.destroy()
+            
+            # Apply scaling
+            ctk.set_widget_scaling(selected_scaling)
+            
+            # Create new preview frame
+            self.preview_frame = PreviewFrame(self.main_container, self.input_data_frame)
+            self.preview_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew", rowspan=5, columnspan=2)
+            
+            # Update path frame reference
+            self.path_frame.preview_frame = self.preview_frame
+            
+            # Update preview after short delay
+            self.after(100, self._update_after_scaling)
+
+        except Exception as e:
+            logging.exception("Error while changing scaling:")
+
+    def _update_after_scaling(self):
+        try:
+            if self.path_frame.input_entry.get():
+                logging.info("Updating preview after scaling change")
+                current_path = self.path_frame.input_entry.get()
+                self.preview_frame.set_folder_path(current_path)
+                self.preview_frame.preview_image()
+        except Exception as e:
+            logging.exception("Error while updating after scaling:")
+
 
 
 

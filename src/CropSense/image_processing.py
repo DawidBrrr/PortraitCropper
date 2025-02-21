@@ -80,6 +80,7 @@ def process_image(image_path,
                                     output_folder,
                                     output_image_path,
                                     filename,
+                                    extension,
                                     image_path,
                                     debug_output,                                    
                                     is_error,
@@ -109,6 +110,7 @@ def process_image(image_path,
                                         output_folder,
                                         output_image_path,
                                         filename,
+                                        extension,
                                         image_path,
                                         debug_output,                                        
                                         is_error,
@@ -143,6 +145,7 @@ def process_image(image_path,
                                         output_folder,
                                         output_image_path,
                                         filename,
+                                        extension,
                                         image_path,
                                         debug_output,                                        
                                         is_error,
@@ -170,6 +173,7 @@ def draw_rectangle(endX,
                    output_folder,
                    output_image_path,
                    filename,
+                   extension,
                    image_path,
                    debug_output,                   
                    is_error,
@@ -246,8 +250,8 @@ def draw_rectangle(endX,
     rect_region = image[margin_upper_left_y:margin_lower_right_y, 
                        margin_upper_left_x:margin_lower_right_x]
 
-    # Save the cropped and resized image
-    output_image_path = os.path.join(output_folder, f"{filename}_face_{i}.png")
+    # Save the cropped and resized image TODO modifiable output paths
+    output_image_path = os.path.join(output_folder, f"{filename}{extension}")
     if rect_region.size == 0:
         is_error = True
     else:
@@ -325,7 +329,7 @@ def draw_rectangle(endX,
     debug_image[background_height:combined_height, 0:second_background_width] = second_background
 
     filename = os.path.splitext(os.path.basename(image_path))[0]
-    debug_image_path = os.path.join(debug_output, f"{filename}_face_{i}.jpg")
+    debug_image_path = os.path.join(debug_output, f"{filename}_debug_{i}{extension}")
     cv2.imwrite(debug_image_path, debug_image)
 
     return is_error
