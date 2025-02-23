@@ -1,6 +1,6 @@
 from CropSense import image_processing
 import threading
-from Popups import ProgressBarPopup
+from Popups import CroppingProgressBarPopup
 import os
 from PIL import Image
 
@@ -45,9 +45,9 @@ class CropperClass:
                 print(f"Error in Cropper: {e}")
             finally:
                 self.change_image_dpi()
-                self.ProgressBarPopup.destroy()
+                self.CroppingProgressBarPopup.destroy()
         try:
-            self.ProgressBarPopup = ProgressBarPopup(master)
+            self.CroppingProgressBarPopup = CroppingProgressBarPopup(master)
 
             #proces kadrowania
             threading.Thread(target=RunCropProcess).start()

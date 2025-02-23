@@ -3,6 +3,7 @@ import os
 import sys
 import shutil
 import logging
+import threading
 from datetime import datetime
 from Frames import InputsFrame
 from Frames import PathFrame
@@ -178,8 +179,8 @@ class App(ctk.CTk):
 
     #Rotate images 90 degrees TODO fix buggy rotation
     def rotate_images(self):
-        if self.path_frame.input_entry.get() == None:
-            print("Select an input path")
+        if not self.path_frame.input_entry.get():
+            messagebox.showwarning("Nie można kontynuować","Wprowadź folder wejściowy")
             pass
         else:
             input_folder = self.path_frame.input_entry.get()
@@ -209,8 +210,8 @@ class App(ctk.CTk):
 
     #Flip images / mirror image
     def flip_images(self):
-        if self.path_frame.input_entry.get() == None:
-            print("Select an input path")
+        if not self.path_frame.input_entry.get():
+            messagebox.showwarning("Nie można kontynuować","Wprowadź folder wejściowy")
             pass
         else:
             input_folder = self.path_frame.input_entry.get()

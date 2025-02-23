@@ -87,7 +87,7 @@ def process_image(image_path,
                                     i,
                                     confidence,
                                     error_msg)
-                    break
+                    continue
                 
                 if confidence > variable.confidence_level:                  
                     
@@ -117,7 +117,7 @@ def process_image(image_path,
                                         i,
                                         confidence,
                                         error_msg)
-                        break
+                        continue
                     
                 break
             for i in range(detections.shape[2]):
