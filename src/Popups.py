@@ -28,7 +28,7 @@ class CroppingProgressBarPopup(ctk.CTkToplevel):
         pass
 
 #RotatePrograssBarPopup
-class RotatePrograssBarPopup(ctk.CTkToplevel):
+class RotateProgressBarPopup(ctk.CTkToplevel):
     def __init__(self,master):
         super().__init__(master)
         self.geometry("400x200")

@@ -76,6 +76,8 @@ def process_image(image_path,
                                     top_margin_value,
                                     bottom_margin_value,
                                     left_right_margin_value,
+                                    res_x,
+                                    res_y,
                                     image,                                     
                                     output_folder,
                                     output_image_path,
@@ -87,7 +89,7 @@ def process_image(image_path,
                                     i,
                                     confidence,
                                     error_msg)
-                    continue
+                    break
                 
                 if confidence > variable.confidence_level:                  
                     
@@ -117,7 +119,7 @@ def process_image(image_path,
                                         i,
                                         confidence,
                                         error_msg)
-                        continue
+                        break
                     
                 break
             for i in range(detections.shape[2]):

@@ -10,6 +10,7 @@ from Frames import PathFrame
 #from Frames import AttributeParsingFrame
 from Frames import PreviewFrame
 from Cropper import CropperClass
+from Popups import RotateProgressBarPopup
 import cv2
 from PIL import Image
 from tkinter import messagebox
@@ -179,33 +180,60 @@ class App(ctk.CTk):
 
     #Rotate images 90 degrees TODO fix buggy rotation
     def rotate_images(self):
-        if not self.path_frame.input_entry.get():
-            messagebox.showwarning("Nie można kontynuować","Wprowadź folder wejściowy")
-            pass
-        else:
-            input_folder = self.path_frame.input_entry.get()
-            # Iterate over all files in the input folder
-            for filename in os.listdir(input_folder):
-                # Construct the full file path
-                file_path = os.path.join(input_folder, filename)
+        def rotate_process():
+            try:
+                if not self.path_frame.input_entry.get():
+                    messagebox.showwarning("Nie można kontynuować","Wprowadź folder wejściowy")
+                    pass
+                else:
+                    input_folder = self.path_frame.input_entry.get()
+                    # Iterate over all files in the input folder
+                    for filename in os.listdir(input_folder):
+                        # Construct the full file path
+                        file_path = os.path.join(input_folder, filename)
 
-                # Check if the file is an image (simple check based on file extension)
-                if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff')):
-                    # Read the image
-                    image = cv2.imread(file_path)
+                        # Check if the file is an image (simple check based on file extension)
+                        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff')):
+                            # Read the image
+                            image = cv2.imread(file_path)
 
-                    # Check if image is loaded properly
-                    if image is None:
-                        print(f"Warning: Could not open or find the image {filename}. Skipping.")
-                        continue
+                            # Check if image is loaded properly
+                            if image is None:
+                                print(f"Warning: Could not open or find the image {filename}. Skipping.")
+                                continue
 
-                    # Flip the image
-                    rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+                            # Flip the image
+                            rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
 
-                    # Save the flipped image, replacing the original image
-                    cv2.imwrite(file_path, rotated_image)
-                    self.path_frame.display_images(input_folder)
-                    self.preview_frame.set_folder_path(self.path_frame.input_entry.get())                   
+                            # Save the flipped image, replacing the original image
+                            cv2.imwrite(file_path, rotated_image)                                                    
+            except Exception as e:
+                logging.exception(f"Error while rotating images: {e}")
+            finally:
+                if hasattr(self, 'RotateProgressBarPopup'):
+                    try:
+                        if input_folder:
+                            self.path_frame.display_images(input_folder)
+                            self.preview_frame.set_folder_path(input_folder)
+                        self.after_idle(self.RotateProgressBarPopup.destroy)
+                        delattr(self, 'RotateProgressBarPopup')
+                    except Exception as e:
+                        logging.exception(f"Error in cleanup: {e}")       
+        try:
+            if hasattr(self, 'RotateProgressBarPopup'):
+                try:
+                    self.RotateProgressBarPopup.destroy()
+                except:
+                    pass
+                
+            self.RotateProgressBarPopup = RotateProgressBarPopup(self)
+            
+            threading.Thread(target=rotate_process).start()
+        except Exception as e:
+            logging.exception(f"Multithreading Error: {e}")
+
+        
+                               
 
 
     #Flip images / mirror image
