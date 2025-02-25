@@ -9,6 +9,7 @@ from Frames import InputsFrame
 from Frames import PathFrame
 #from Frames import AttributeParsingFrame
 from Frames import PreviewFrame
+from Frames import OutputFileNameFrame
 from Cropper import CropperClass
 from Popups import RotateProgressBarPopup
 from Popups import FlipProgressBarPopup
@@ -114,6 +115,9 @@ class App(ctk.CTk):
         self.path_frame = PathFrame(self.main_container, self.preview_frame)
         self.path_frame.grid(row=2, column=2, padx=20, pady=20, sticky="nse")
 
+        self.output_file_name_frame = OutputFileNameFrame(self.main_container)
+        self.output_file_name_frame.grid(row=5,column=2,padx=20,pady=20,sticky="nse")
+        
         """
         self.attribute_parsing_frame = AttributeParsingFrame(self.main_container, self.path_frame)
         self.attribute_parsing_frame.grid(row=5, column=2, padx=20, pady=20, sticky="nse")

@@ -18,7 +18,7 @@ class InputsFrame(ctk.CTkFrame):
         super().__init__(master)
 
         self.grid_columnconfigure((0, 3), weight=1)
-
+        
         # Top margin
         self.top_margin_label = ctk.CTkLabel(self, text="Górny margines")
         self.top_margin_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
@@ -632,7 +632,57 @@ class PreviewFrame(ctk.CTkFrame):
             self.preview_image_label.configure(image=None)
 
 
-#ToolTip class
+class OutputFileNameFrame(ctk.CTkFrame):
+    def __init__(self,master):
+        super().__init__(master)
+
+        self.grid_columnconfigure(1, weight=1)
+
+        #Change output file names
+        #Structure  entryNew - DropDown(nazwaPliku, Brak) - DropDown(brak, numeracja, data, data + numeracja) - rozszerzenie(bez zmian,jpg,png,webip itd itd)
+        #main Label
+        self.output_file_name_label = ctk.CTkLabel(self, text="Zmiana nazwy pliku wyjściowego:")
+        self.output_file_name_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
+        
+        #NewNameEntry
+        self.output_file_name_entry_label = ctk.CTkLabel(self, text="Dopisek")
+        self.output_file_name_entry_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+
+        self.output_file_name_entry = ctk.CTkEntry(self)
+        self.output_file_name_entry.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
+        self.output_file_name_entry.insert(0,"")
+
+        #NameDropdown
+        self.output_file_name_name_dropdown_label = ctk.CTkLabel(self, text="Nazwa")
+        self.output_file_name_name_dropdown_label.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+
+        self.output_file_name_name_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="Nazwa Pliku"), values=["Nazwa Pliku","Brak"])
+        self.output_file_name_name_dropdown.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+
+        #NumberingDropdown
+        self.output_file_name_numbering_dropdown_label = ctk.CTkLabel(self, text="Numeracja")
+        self.output_file_name_numbering_dropdown_label.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
+
+        self.output_file_name_numbering_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="Brak"), values=["Brak","Numeracja","Data","Data + Numeracja"])
+        self.output_file_name_numbering_dropdown.grid(row=2, column=2, padx=10, pady=10, sticky="nsew")
+
+        #ExtensionDropdown
+        self.output_file_name_extension_dropdown_label = ctk.CTkLabel(self, text="Rozszerzenie")
+        self.output_file_name_extension_dropdown_label.grid(row=1, column=3, padx=10, pady=10, sticky="nsew")
+
+        self.output_file_name_extension_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="Bez zmian"), values=["Bez zmian","jpg", "jpeg", "png", "webp"])
+        self.output_file_name_extension_dropdown.grid(row=2, column=3, padx=10, pady=10, sticky="nsew")
+
+        #TODO return values from this frame as a list
+
+
+
+
+
+
+
+
+#ToolTip class TODO fix tooltips staying on screen
 class Tooltip:
     def __init__(self, widget, text, delay=500):
         self.widget = widget

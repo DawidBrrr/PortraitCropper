@@ -15,7 +15,7 @@ def images_error(image_path, error_folder):
     shortcut.Save()
 
 
-
+#TODO if detected images in a folder, ask if user wants to delete images in there or add them to the folder
 def process_image(image_path,
                   error_folder,
                   output_folder,
