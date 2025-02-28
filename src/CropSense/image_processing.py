@@ -3,6 +3,7 @@ import os
 import imghdr
 import win32com.client
 from tqdm import tqdm
+from datetime import datetime
 import numpy as np
 from CropSense import variable
 
@@ -15,7 +16,25 @@ def images_error(image_path, error_folder):
     shortcut.Save()
 
 
+def cv2_imwrite_unicode(filename, image):
+    """
+    Workaround for cv2.imwrite not supporting Unicode filenames on Windows.
+    Encode the image into a memory buffer and write it using Python's open().
+    """
+    # Get file extension (e.g., '.png', '.jpg')
+    ext = os.path.splitext(filename)[1]
+    # cv2.imencode expects the extension with a dot, so ensure it's correct.
+    success, encoded_img = cv2.imencode(ext, image)
+    if success:
+        with open(filename, "wb") as f:
+            f.write(encoded_img)
+        return True
+    else:
+        return False
+
+
 #TODO if detected images in a folder, ask if user wants to delete images in there or add them to the folder
+#TODO make it choose face with highest confidence
 def process_image(image_path,
                   error_folder,
                   output_folder,
@@ -24,7 +43,9 @@ def process_image(image_path,
                   res_y,                    
                   top_margin_value, 
                   bottom_margin_value,
-                  left_right_margin_value=0.0):
+                  left_right_margin_value,
+                  naming_config,
+                  image_count):
     error_count = 0
     endX = 0
     endY = 0
@@ -34,8 +55,16 @@ def process_image(image_path,
     confidence = 0
     image = ""
     output_image_path = ""
-    filename = ""
+    original_filename = ""
     error_msg = ""
+
+    if naming_config is None:
+        naming_config = {
+            "prefix": "",
+            "name": "",
+            "numbering_type": "Brak",
+            "extension": "Bez zmian"
+        }
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     prototxt_path = os.path.join(script_dir, "deploy.prototxt.txt")
@@ -43,12 +72,12 @@ def process_image(image_path,
     net = cv2.dnn.readNetFromCaffe(prototxt_path, model_path)
     
     is_error = False
-    filename, extension = os.path.splitext(os.path.basename(image_path))
+    original_filename, original_extension = os.path.splitext(os.path.basename(image_path))
     image = cv2.imread(image_path)
     image_format = imghdr.what(image_path)
     supported_formats = ["jpg", "jpeg", "png", "webp"]
     if image_format is None or image_format not in supported_formats:
-        print(f"\rInvalid image format or unsupported format, skipping {filename}{extension}")
+        print(f"\rInvalid image format or unsupported format, skipping {original_filename}{original_extension}")
         error_count += 1
     else:
         if image.shape[0] > 300 or image.shape[1] > 300:
@@ -64,7 +93,7 @@ def process_image(image_path,
                 width = endX - startX
                 height = endY - startY
                 if confidence < variable.confidence_level:
-                    print(f"\rConfidence level too low ({int(confidence * 100)}%), skipping face_{i} on {filename}{extension}")
+                    print(f"\rConfidence level too low ({int(confidence * 100)}%), skipping face_{i} on {original_filename}{original_extension}")
                     error_msg = "CONFIDENCE LEVEL TOO LOW"
                     images_error(image_path, error_folder)
                     is_error = True
@@ -81,12 +110,14 @@ def process_image(image_path,
                                     image,                                     
                                     output_folder,
                                     output_image_path,
-                                    filename,
-                                    extension,
+                                    original_filename,
+                                    original_extension,
+                                    naming_config,
                                     image_path,
                                     debug_output,                                    
                                     is_error,
                                     i,
+                                    image_count,
                                     confidence,
                                     error_msg)
                     break
@@ -94,7 +125,7 @@ def process_image(image_path,
                 if confidence > variable.confidence_level:                  
                     
                     if width < variable.min_face_res_x or height < variable.min_face_res_y:
-                        print(f"\rFace resolution is too small for face crop, skipping face_{i} on {filename}{extension}")
+                        print(f"\rFace resolution is too small for face crop, skipping face_{i} on {original_filename}{original_extension}")
                         error_msg = "FACE RESOLUTION IS TOO SMALL"
                         images_error(image_path, error_folder)
                         is_error = True
@@ -111,12 +142,14 @@ def process_image(image_path,
                                         image,                                             
                                         output_folder,
                                         output_image_path,
-                                        filename,
-                                        extension,
+                                        original_filename,
+                                        original_extension,
+                                        naming_config,
                                         image_path,
                                         debug_output,                                        
                                         is_error,
                                         i,
+                                        image_count,
                                         confidence,
                                         error_msg)
                         break
@@ -146,18 +179,20 @@ def process_image(image_path,
                                         image,                                 
                                         output_folder,
                                         output_image_path,
-                                        filename,
-                                        extension,
+                                        original_filename,
+                                        original_extension,
+                                        naming_config,
                                         image_path,
                                         debug_output,                                        
                                         is_error,
                                         i,
+                                        image_count,
                                         confidence,
                                         error_msg)
                 else:
                     break
         else:
-            print(f"\rThe resolution is too low for face detection, skipping {filename}{extension}")
+            print(f"\rThe resolution is too low for face detection, skipping {original_filename}{original_extension}")
             images_error(image_path, error_folder)
             error_count += 1
     return error_count
@@ -174,12 +209,14 @@ def draw_rectangle(endX,
                    image, 
                    output_folder,
                    output_image_path,
-                   filename,
-                   extension,
+                   original_filename,
+                   original_extension,
+                   naming_config,
                    image_path,
                    debug_output,                   
                    is_error,
                    i,
+                   image_count,
                    confidence,
                    error_msg):
     # Calculate the size of the region to be cropped
@@ -253,13 +290,13 @@ def draw_rectangle(endX,
                        margin_upper_left_x:margin_lower_right_x]
 
     # Save the cropped and resized image TODO modifiable output paths
-    output_image_path = os.path.join(output_folder, f"{filename}{extension}")
+    output_image_path = os.path.join(output_folder, generate_filename(original_filename,original_extension,naming_config, image_count))
     if rect_region.size == 0:
         is_error = True
     else:
         if not is_error:
             resized_image = cv2.resize(rect_region, (res_x, res_y))
-            cv2.imwrite(output_image_path, resized_image)
+            cv2_imwrite_unicode(output_image_path, resized_image)
     
     # Calculate the thickness of the rectangle based on the image resolution
     resolution_thickness_ratio = image.shape[1] // 128
@@ -331,7 +368,40 @@ def draw_rectangle(endX,
     debug_image[background_height:combined_height, 0:second_background_width] = second_background
 
     filename = os.path.splitext(os.path.basename(image_path))[0]
-    debug_image_path = os.path.join(debug_output, f"{filename}_debug_{i}{extension}")
+    debug_image_path = os.path.join(debug_output, f"{filename}_debug_{i}{original_extension}")
     cv2.imwrite(debug_image_path, debug_image)
 
     return is_error
+
+#TODO fix polish characters in filenames
+def generate_filename(original_filename,original_extension,naming_config,index=None):
+        parts = []
+
+        if naming_config["prefix"]:
+            parts.append(naming_config["prefix"])
+
+        if naming_config["name"] != "Brak":            
+            parts.append(original_filename)
+
+        if naming_config["numbering_type"] == "Numeracja":
+            parts.append(f"{index}" if index is not None else "1")
+        elif naming_config["numbering_type"] == "Data":
+            parts.append(datetime.now().strftime("%Y_%m_%d"))
+        elif naming_config["numbering_type"] == "Data + Numeracja":
+            parts.append(datetime.now().strftime("%Y_%m_%d"))
+            parts.append(f"{index}" if index is not None else "1")
+
+        new_name = "_".join(parts)
+
+        if naming_config["extension"] == "Bez zmian":
+            extension = original_extension
+        else:
+            extension = f".{naming_config['extension']}"
+
+        print(f"{new_name}{extension}")
+
+        return f"{new_name}{extension}"
+
+
+
+

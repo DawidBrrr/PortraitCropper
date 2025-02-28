@@ -6,7 +6,7 @@ from PIL import Image
 
 
 class CropperClass:
-    def __init__(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value):
+    def __init__(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value,naming_config):
         self.input_path = input_path
         self.output_path = output_path
         self.debug_output = debug_output        
@@ -15,11 +15,13 @@ class CropperClass:
         self.top_margin_value = top_margin_value
         self.bottom_margin_value = bottom_margin_value
         self.left_right_margin_value = left_right_margin_value
+        self.naming_config = naming_config
 
     
-    def CropProcess(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value):
+    def CropProcess(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value,naming_config):
         input_files = [os.path.join(input_path, file) for file in os.listdir(input_path)]
         try:
+            image_count = 0
             for image_path in input_files: # TODO in output folder create 2 folders success and error
                 image_processing.process_image(image_path=image_path,
                                         error_folder=debug_output,
@@ -29,7 +31,10 @@ class CropperClass:
                                         res_y=res_y,                                                                                
                                         top_margin_value = top_margin_value,
                                         bottom_margin_value = bottom_margin_value,
-                                        left_right_margin_value = left_right_margin_value)
+                                        left_right_margin_value = left_right_margin_value,
+                                        naming_config = naming_config,
+                                        image_count = image_count)
+                image_count += 1
         except Exception as e:
             print(f"Error in Cropper: {e}")
         
@@ -39,7 +44,7 @@ class CropperClass:
 
         def RunCropProcess():
             try:
-                self.CropProcess(self.input_path,self.output_path,self.debug_output,self.res_x,self.res_y,self.top_margin_value,self.bottom_margin_value,self.left_right_margin_value)
+                self.CropProcess(self.input_path,self.output_path,self.debug_output,self.res_x,self.res_y,self.top_margin_value,self.bottom_margin_value,self.left_right_margin_value,self.naming_config)
 
             except Exception as e:
                 print(f"Error in Cropper: {e}")

@@ -163,7 +163,8 @@ class App(ctk.CTk):
                                    res_y=int(self.input_data_frame.get_y_in_px(self.path_frame.input_entry.get())),                                                        
                                    top_margin_value=float(self.input_data_frame.top_margin_entry.get()),
                                    bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
-                                   left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()))                                                                   
+                                   left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()),                                                                   
+                                   naming_config = self.output_file_name_frame.get_naming_config())
             cropper.CropFaces(self)
 
     def on_closing(self):

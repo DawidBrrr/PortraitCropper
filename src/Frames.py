@@ -563,7 +563,9 @@ class PreviewFrame(ctk.CTkFrame):
                 res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),                                                            
                 top_margin_value=float(self.input_data_frame.top_margin_entry.get()),
                 bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
-                left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get())
+                left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()),
+                naming_config=None,
+                image_count=0
             )
 
             # Schedule UI update in main thread
@@ -673,7 +675,13 @@ class OutputFileNameFrame(ctk.CTkFrame):
         self.output_file_name_extension_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="Bez zmian"), values=["Bez zmian","jpg", "jpeg", "png", "webp"])
         self.output_file_name_extension_dropdown.grid(row=2, column=3, padx=10, pady=10, sticky="nsew")
 
-        #TODO return values from this frame as a list
+    def get_naming_config(self):
+        return {
+            "prefix": self.output_file_name_entry.get(),
+            "name": self.output_file_name_name_dropdown.get(),
+            "numbering_type": self.output_file_name_numbering_dropdown.get(),                
+            "extension": self.output_file_name_extension_dropdown.get()
+        }
 
 
 
