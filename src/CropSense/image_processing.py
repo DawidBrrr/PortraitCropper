@@ -33,7 +33,6 @@ def cv2_imwrite_unicode(filename, image):
         return False
 
 
-#TODO if detected images in a folder, ask if user wants to delete images in there or add them to the folder
 #TODO make it choose face with highest confidence
 def process_image(image_path,
                   error_folder,
@@ -79,123 +78,81 @@ def process_image(image_path,
     if image_format is None or image_format not in supported_formats:
         print(f"\rInvalid image format or unsupported format, skipping {original_filename}{original_extension}")
         error_count += 1
-    else:
-        if image.shape[0] > 300 or image.shape[1] > 300:
-            blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
-            net.setInput(blob)
-            detections = net.forward()
+        return error_count
+    
+    if image.shape[0] <= 300 or image.shape[1] <= 300:
+        print(f"\rThe resolution is too low for face detection, skipping {original_filename}{original_extension}")
+        images_error(image_path, error_folder)
+        error_count += 1
+        return error_count
+    
+    blob = cv2.dnn.blobFromImage(cv2.resize(image, (300, 300)), 1.0, (300, 300), (104.0, 177.0, 123.0))
+    net.setInput(blob)
+    detections = net.forward()
 
-            for i in range(detections.shape[2]):
-                confidence = detections[0, 0, i, 2]
-                box = detections[0, 0, i, 3:7] * np.array([image.shape[1], image.shape[0], image.shape[1], image.shape[0]])
-                (startX, startY, endX, endY) = box.astype(int)
+    # Find face with highest confidence
+    highest_confidence = 0
+    best_detection = None
+    best_detection_index = -1
 
-                width = endX - startX
-                height = endY - startY
-                if confidence < variable.confidence_level:
-                    print(f"\rConfidence level too low ({int(confidence * 100)}%), skipping face_{i} on {original_filename}{original_extension}")
-                    error_msg = "CONFIDENCE LEVEL TOO LOW"
-                    images_error(image_path, error_folder)
-                    is_error = True
-                    error_count += 1
-                    draw_rectangle(endX,
-                                    startX,
-                                    endY,
-                                    startY,
-                                    top_margin_value,
-                                    bottom_margin_value,
-                                    left_right_margin_value,
-                                    res_x,
-                                    res_y,
-                                    image,                                     
-                                    output_folder,
-                                    output_image_path,
-                                    original_filename,
-                                    original_extension,
-                                    naming_config,
-                                    image_path,
-                                    debug_output,                                    
-                                    is_error,
-                                    i,
-                                    image_count,
-                                    confidence,
-                                    error_msg)
-                    break
-                
-                if confidence > variable.confidence_level:                  
-                    
-                    if width < variable.min_face_res_x or height < variable.min_face_res_y:
-                        print(f"\rFace resolution is too small for face crop, skipping face_{i} on {original_filename}{original_extension}")
-                        error_msg = "FACE RESOLUTION IS TOO SMALL"
-                        images_error(image_path, error_folder)
-                        is_error = True
-                        error_count += 1
-                        draw_rectangle(endX,
-                                        startX,
-                                        endY,
-                                        startY,
-                                        top_margin_value,
-                                        bottom_margin_value,
-                                        left_right_margin_value,
-                                        res_x,
-                                        res_y,
-                                        image,                                             
-                                        output_folder,
-                                        output_image_path,
-                                        original_filename,
-                                        original_extension,
-                                        naming_config,
-                                        image_path,
-                                        debug_output,                                        
-                                        is_error,
-                                        i,
-                                        image_count,
-                                        confidence,
-                                        error_msg)
-                        break
-                    
-                break
-            for i in range(detections.shape[2]):
-                if is_error == True:
-                    break
-                confidence = detections[0, 0, i, 2]
+    # First pass - find the face with highest confidence
+    for i in range(detections.shape[2]):
+        confidence = detections[0, 0, i, 2]
+        if confidence > highest_confidence:
+            box = detections[0, 0, i, 3:7] * np.array([image.shape[1], image.shape[0], image.shape[1], image.shape[0]])
+            (startX, startY, endX, endY) = box.astype(int)
+            width = endX - startX
+            height = endY - startY
+            if width >= variable.min_face_res_x and height >= variable.min_face_res_y:
+                highest_confidence = confidence
+                best_detection = (startX, startY, endX, endY)
+                best_detection_index = i
 
-                # Filter out weak detections
-                if confidence > variable.confidence_level:
-                    box = detections[0, 0, i, 3:7] * np.array([image.shape[1], image.shape[0], image.shape[1], image.shape[0]])
-                    (startX, startY, endX, endY) = box.astype(int)
-                
-                    width = endX - startX
-                    height = endY - startY
-                    is_error = draw_rectangle(endX,
-                                        startX,
-                                        endY,
-                                        startY,
-                                        top_margin_value,
-                                        bottom_margin_value,
-                                        left_right_margin_value,
-                                        res_x,
-                                        res_y,
-                                        image,                                 
-                                        output_folder,
-                                        output_image_path,
-                                        original_filename,
-                                        original_extension,
-                                        naming_config,
-                                        image_path,
-                                        debug_output,                                        
-                                        is_error,
-                                        i,
-                                        image_count,
-                                        confidence,
-                                        error_msg)
-                else:
-                    break
-        else:
-            print(f"\rThe resolution is too low for face detection, skipping {original_filename}{original_extension}")
-            images_error(image_path, error_folder)
-            error_count += 1
+
+    # Process the best detection
+    if highest_confidence < variable.confidence_level:
+        print(f"\rConfidence level too low ({int(highest_confidence * 100)}%), skipping face_{best_detection_index} on {original_filename}{original_extension}")
+        error_msg = "CONFIDENCE LEVEL TOO LOW"
+        images_error(image_path, error_folder)
+        is_error = True
+        error_count += 1
+    elif best_detection is None:
+        print(f"\rFace resolution is too small for face crop, skipping faces on {original_filename}{original_extension}")
+        error_msg = "FACE RESOLUTION IS TOO SMALL"
+        images_error(image_path, error_folder)
+        is_error = True
+        error_count += 1
+    
+    # Draw rectangle for either the best face or error case
+    if best_detection is not None:
+        startX, startY, endX, endY = best_detection
+        is_error = draw_rectangle(endX,
+                                startX,
+                                endY,
+                                startY,
+                                top_margin_value,
+                                bottom_margin_value,
+                                left_right_margin_value,
+                                res_x,
+                                res_y,
+                                image,                                 
+                                output_folder,
+                                output_image_path,
+                                original_filename,
+                                original_extension,
+                                naming_config,
+                                image_path,
+                                debug_output,                                        
+                                is_error,
+                                best_detection_index,
+                                image_count,
+                                highest_confidence,
+                                error_msg)
+
     return error_count
+
+
+
 
 def draw_rectangle(endX,
                    startX,
@@ -397,8 +354,6 @@ def generate_filename(original_filename,original_extension,naming_config,index=N
             extension = original_extension
         else:
             extension = f".{naming_config['extension']}"
-
-        print(f"{new_name}{extension}")
 
         return f"{new_name}{extension}"
 
