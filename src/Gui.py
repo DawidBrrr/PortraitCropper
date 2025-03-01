@@ -85,65 +85,78 @@ class App(ctk.CTk):
         self.geometry("600x400")
         self.after(0, lambda: self.state('zoomed'))#whole screen cover
 
-        # Create main scrollable container
-        self.main_container = ctk.CTkScrollableFrame(self)
-        self.main_container.grid(row=0, column=0, sticky="nsew")
-        self.main_container.grid_columnconfigure((0,2), weight=1)
-        
         # Configure main window grid
         self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=2)  # Preview section - 2/3
+        self.grid_columnconfigure(1, weight=1)  # Controls section - 1/3
 
-        self.title_font = ctk.CTkFont(family="Oswald",size = 50,weight = "bold")
-        self.text_font = ctk.CTkFont(family = "Arial",size = 18)
+        # Create two main containers
+        self.preview_container = ctk.CTkFrame(self)
+        self.preview_container.grid(row=0, column=0, sticky="nsew", padx=(20,10), pady=20)
+        self.preview_container.grid_rowconfigure(0, weight=1)
+        self.preview_container.grid_columnconfigure(0, weight=1)
 
-        # Move all existing frames to main_container
-        self.toolbar_frame = ctk.CTkFrame(self.main_container)
-        self.toolbar_frame.grid_columnconfigure((0,2),weight=1)
-        self.toolbar_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew", columnspan=3)
+        self.controls_container = ctk.CTkScrollableFrame(self)
+        self.controls_container.grid(row=0, column=1, sticky="nsew", padx=(10,20), pady=20)
+        self.controls_container.grid_columnconfigure(0, weight=1)
 
-        self.input_data_frame = InputsFrame(self.main_container)
-        self.input_data_frame.grid(row=3, column=2, padx=20, pady=20, sticky="nse")        
+        self.title_font = ctk.CTkFont(family="Oswald", size=50, weight="bold")
+        self.text_font = ctk.CTkFont(family="Arial", size=18)
 
-        self.flipping_frame = ctk.CTkFrame(self.main_container)
-        self.flipping_frame.grid_columnconfigure((0,1), weight=1)
-        self.flipping_frame.grid(row=4, column=2, padx=20, pady=20, sticky="nse")
+        # Add frames to controls container
+        self.toolbar_frame = ctk.CTkFrame(self.controls_container, fg_color="gray15")
+        self.toolbar_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        self.toolbar_frame.grid_columnconfigure((0,1,2), weight=1)
 
-        self.preview_frame = PreviewFrame(self.main_container, self.input_data_frame)
-        self.preview_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew", rowspan=5, columnspan=2)
+        self.path_frame = PathFrame(self.controls_container, None)
+        self.path_frame.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-        self.path_frame = PathFrame(self.main_container, self.preview_frame)
-        self.path_frame.grid(row=2, column=2, padx=20, pady=20, sticky="nse")
+        self.input_data_frame = InputsFrame(self.controls_container)
+        self.input_data_frame.grid(row=2, column=0, padx=5, pady=5, sticky="ew")
 
-        self.output_file_name_frame = OutputFileNameFrame(self.main_container)
-        self.output_file_name_frame.grid(row=5,column=2,padx=20,pady=20,sticky="nse")
-        
-        """
-        self.attribute_parsing_frame = AttributeParsingFrame(self.main_container, self.path_frame)
-        self.attribute_parsing_frame.grid(row=5, column=2, padx=20, pady=20, sticky="nse")
-        """
-        # Move buttons to toolbar_frame
-        self.crop_button = ctk.CTkButton(self.toolbar_frame, text="Skadruj", command=self.CropButton)
-        self.crop_button.grid(row=0, column=2, padx=20, pady=20, sticky="se")
+        self.output_file_name_frame = OutputFileNameFrame(self.controls_container)
+        self.output_file_name_frame.grid(row=3, column=0, padx=5, pady=5, sticky="ew")
 
+        # Add preview frame to preview container
+        self.preview_frame = PreviewFrame(self.preview_container, self.input_data_frame)
+        self.preview_frame.grid(row=0, column=0, sticky="nsew")
+
+        # Update path_frame with preview_frame reference
+        self.path_frame.preview_frame = self.preview_frame
+
+        # Add buttons to toolbar frame
         self.scaling_options = ["50%","60%","75%","100%","150%","200%"]
-        self.scaling_var = ctk.StringVar(value="100%") #100% scaling by default
-        self.scale_dropdown = ctk.CTkOptionMenu(self.toolbar_frame,values=self.scaling_options, command = self.change_scaling,variable=self.scaling_var)
-        self.scale_dropdown.grid(row = 0,column = 2,padx=20,pady=20,sticky="s")
+        self.scaling_var = ctk.StringVar(value="100%")
+        self.scale_dropdown = ctk.CTkOptionMenu(self.toolbar_frame, 
+                                              values=self.scaling_options, 
+                                              command=self.change_scaling,
+                                              variable=self.scaling_var)
+        self.scale_dropdown.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
-        # Move rotation buttons to flipping_frame
-        self.rotate_images_button = ctk.CTkButton(self.flipping_frame, text="Obróć", command=self.rotate_images)
-        self.rotate_images_button.grid(row=0, column=0, padx=10, pady=10, sticky="e")
+        # Add transform buttons as segmented button
+        self.transform_segment = ctk.CTkSegmentedButton(self.toolbar_frame,
+                                                      values=["Obróć", "Lustrzane"],
+                                                      command=self.handle_transform)
+        self.transform_segment.grid(row=0, column=1, padx=5, pady=5)
 
-        self.flip_images_button = ctk.CTkButton(self.flipping_frame, text="Lustrzane", command=self.flip_images)
-        self.flip_images_button.grid(row=0, column=1, padx=10, pady=10, sticky="e")
-    
-        #Bind the close event to cleanup
+        self.crop_button = ctk.CTkButton(self.toolbar_frame, 
+                                       text="Skadruj", 
+                                       command=self.CropButton)
+        self.crop_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")
+
+        # Bind the close event to cleanup
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     #Exiting Fullscreen
     def exit_fullscreen(self, event=None):
         self.attributes('-fullscreen', False)
+
+    def handle_transform(self, value):
+        """Handle transform segmented button clicks"""
+        if value == "Obróć":
+            self.rotate_images()
+        elif value == "Lustrzane":
+            self.flip_images()
 
     def CropButton(self):
         #Make Dpi global var
@@ -329,8 +342,8 @@ class App(ctk.CTk):
             ctk.set_widget_scaling(selected_scaling)
             
             # Create new preview frame
-            self.preview_frame = PreviewFrame(self.main_container, self.input_data_frame)
-            self.preview_frame.grid(row=0, column=0, padx=20, pady=20, sticky="nsew", rowspan=5, columnspan=2)
+            self.preview_frame = PreviewFrame(self.preview_container, self.input_data_frame)
+            self.preview_frame.grid(row=0, column=0, sticky="nsew")
             
             # Update path frame reference
             self.path_frame.preview_frame = self.preview_frame

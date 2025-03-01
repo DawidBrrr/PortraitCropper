@@ -15,7 +15,7 @@ global_output_path = None
 #InputData Frame
 class InputsFrame(ctk.CTkFrame):
     def __init__(self, master):
-        super().__init__(master)
+        super().__init__(master,fg_color="gray15")
 
         self.grid_columnconfigure((0, 3), weight=1)
         
@@ -289,7 +289,7 @@ class InputsFrame(ctk.CTkFrame):
 #Path Frame
 class PathFrame(ctk.CTkFrame):
     def __init__(self, master,preview_frame):
-        super().__init__(master)
+        super().__init__(master,fg_color="gray15")
 
         self.preview_frame = preview_frame
 
@@ -475,7 +475,8 @@ class PreviewFrame(ctk.CTkFrame):
         self.input_data_frame = input_data_frame
         self.input_data_frame.set_preview_frame(self)
 
-        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure((0,1,2), weight=1)
+        self.grid_propagate(False)
 
         # Preview button
         self.preview_button = ctk.CTkButton(self, text="Podgląd", command=self.preview_image)
@@ -636,7 +637,7 @@ class PreviewFrame(ctk.CTkFrame):
 
 class OutputFileNameFrame(ctk.CTkFrame):
     def __init__(self,master):
-        super().__init__(master)
+        super().__init__(master,fg_color="gray15")
 
         self.grid_columnconfigure(1, weight=1)
 
