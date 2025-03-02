@@ -106,7 +106,7 @@ class App(ctk.CTk):
         # Add frames to controls container
         self.toolbar_frame = ctk.CTkFrame(self.controls_container, fg_color="gray15")
         self.toolbar_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        self.toolbar_frame.grid_columnconfigure((0,1,2), weight=1)
+        self.toolbar_frame.grid_columnconfigure((0,1,2,3), weight=1)
 
         self.path_frame = PathFrame(self.controls_container, None)
         self.path_frame.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
@@ -133,16 +133,23 @@ class App(ctk.CTk):
                                               variable=self.scaling_var)
         self.scale_dropdown.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
-        # Add transform buttons as segmented button
-        self.transform_segment = ctk.CTkSegmentedButton(self.toolbar_frame,
-                                                      values=["Obróć", "Lustrzane"],
-                                                      command=self.handle_transform)
-        self.transform_segment.grid(row=0, column=1, padx=5, pady=5)
+        #button for rotating all images 90 degrees
+        self.rotate_button = ctk.CTkButton(self.toolbar_frame,
+                                        text="Obróć",
+                                        command=self.rotate_images)
+        self.rotate_button.grid(row=0, column=1, padx=5, pady=5, sticky="e")
 
+        #button for flipping all images horizontally
+        self.flip_button = ctk.CTkButton(self.toolbar_frame,
+                                        text="Lustrzane",
+                                        command=self.flip_images)
+        self.flip_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")        
+        
+        #cropping button
         self.crop_button = ctk.CTkButton(self.toolbar_frame, 
                                        text="Skadruj", 
                                        command=self.CropButton)
-        self.crop_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")
+        self.crop_button.grid(row=0, column=3, padx=5, pady=5, sticky="e")
 
         # Bind the close event to cleanup
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
@@ -150,13 +157,6 @@ class App(ctk.CTk):
     #Exiting Fullscreen
     def exit_fullscreen(self, event=None):
         self.attributes('-fullscreen', False)
-
-    def handle_transform(self, value):
-        """Handle transform segmented button clicks"""
-        if value == "Obróć":
-            self.rotate_images()
-        elif value == "Lustrzane":
-            self.flip_images()
 
     def CropButton(self):
         #Make Dpi global var

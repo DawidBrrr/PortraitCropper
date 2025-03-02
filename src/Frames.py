@@ -646,10 +646,16 @@ class OutputFileNameFrame(ctk.CTkFrame):
         #main Label
         self.output_file_name_label = ctk.CTkLabel(self, text="Zmiana nazwy pliku wyjściowego:")
         self.output_file_name_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_output_file_name = Tooltip(self.output_file_name_label,
+            "Zmienia nazwę plików wyjściowych\n"
+            "w zależności od wybranych opcji")
         
         #NewNameEntry
         self.output_file_name_entry_label = ctk.CTkLabel(self, text="Dopisek")
         self.output_file_name_entry_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
+        self.tooltip_output_file_name_entry = Tooltip(self.output_file_name_entry_label,
+            "Dodaje ten tekst na początku\n"
+            "nazwy każdego pliku")
 
         self.output_file_name_entry = ctk.CTkEntry(self)
         self.output_file_name_entry.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
@@ -688,57 +694,75 @@ class OutputFileNameFrame(ctk.CTkFrame):
 
 
 
-
-
-
-#ToolTip class TODO fix tooltips staying on screen
 class Tooltip:
     def __init__(self, widget, text, delay=500):
         self.widget = widget
         self.text = text
-        self.delay = delay  # delay in milliseconds
+        self.delay = delay
         self.tooltip_window = None
-        self.showing = False  # To track whether the tooltip is scheduled to be shown
-        self.widget.bind("<Enter>", self.schedule_tooltip)
-        self.widget.bind("<Leave>", self.hide_tooltip)
-        self.widget.bind("<Motion>", self.check_leave)
+        self.scheduled_show = None  # Track scheduled show event
+        self.mouse_on_widget = False  # Track if mouse is on widget
+        
+        self.widget.bind("<Enter>", self.on_enter)
+        self.widget.bind("<Leave>", self.on_leave)
+        self.widget.bind("<Motion>", self.on_motion)
+        self.widget.bind("<Destroy>", self.on_destroy)  # Clean up on widget destruction
 
-    def schedule_tooltip(self, event=None):
-        # Schedule the tooltip to be shown after the delay
-        self.showing = True
-        self.widget.after(self.delay, self.show_tooltip)
+    def on_enter(self, event=None):
+        self.mouse_on_widget = True
+        # Cancel any existing scheduled show
+        if self.scheduled_show:
+            self.widget.after_cancel(self.scheduled_show)
+        # Schedule new show
+        self.scheduled_show = self.widget.after(self.delay, self.show_tooltip)
 
-    def show_tooltip(self, event=None):
-        # Show the tooltip only if the mouse is still hovering over the widget
-        if self.showing and not self.tooltip_window:
-            x, y, _, _ = self.widget.bbox("insert")
-            x += self.widget.winfo_rootx() + 25
-            y += self.widget.winfo_rooty() + 25
+    def on_leave(self, event=None):
+        self.mouse_on_widget = False
+        # Cancel scheduled show if exists
+        if self.scheduled_show:
+            self.widget.after_cancel(self.scheduled_show)
+            self.scheduled_show = None
+        # Hide tooltip
+        self.hide_tooltip()
 
-            self.tooltip_window = tw = ctk.CTkToplevel(self.widget)
-            tw.wm_overrideredirect(True)
-            tw.wm_geometry(f"+{x}+{y}")
-
-            label = ctk.CTkLabel(tw, text=self.text, corner_radius=5)
-            label.pack()
-
-    def hide_tooltip(self, event=None):
-        # Hide the tooltip and cancel the scheduled show if the mouse leaves
-        self.showing = False
-        if self.tooltip_window:
-            self.tooltip_window.destroy()
-            self.tooltip_window = None
-
-    def check_leave(self, event=None):
-        # Get the boundaries of the widget
+    def on_motion(self, event):
+        # Update mouse position relative to widget
         widget_bounds = (
             self.widget.winfo_rootx(),
             self.widget.winfo_rooty(),
             self.widget.winfo_rootx() + self.widget.winfo_width(),
-            self.widget.winfo_rooty() + self.widget.winfo_height(),
+            self.widget.winfo_rooty() + self.widget.winfo_height()
         )
+        
+        if not (widget_bounds[0] <= event.x_root <= widget_bounds[2] and 
+                widget_bounds[1] <= event.y_root <= widget_bounds[3]):
+            self.on_leave()
 
-        # Check if the cursor is outside the widget's boundaries
-        if not (widget_bounds[0] <= event.x_root <= widget_bounds[2] and widget_bounds[1] <= event.y_root <= widget_bounds[3]):
-            self.hide_tooltip()
+    def show_tooltip(self):
+        if self.mouse_on_widget and not self.tooltip_window:
+            x = self.widget.winfo_rootx() + self.widget.winfo_width() + 5
+            y = self.widget.winfo_rooty() + self.widget.winfo_height() // 2
+
+            self.tooltip_window = tw = ctk.CTkToplevel(self.widget)
+            tw.wm_overrideredirect(True)
+            tw.attributes('-topmost', True)  # Keep tooltip on top
+            tw.wm_geometry(f"+{x}+{y}")
+
+            label = ctk.CTkLabel(tw, text=self.text, corner_radius=5)
+            label.pack(padx=5, pady=5)
+
+            # Bind events to tooltip window
+            tw.bind("<Leave>", self.on_leave)
+            tw.update_idletasks()  # Ensure window is created
+
+    def hide_tooltip(self):
+        if self.tooltip_window:
+            self.tooltip_window.destroy()
+            self.tooltip_window = None
+
+    def on_destroy(self, event=None):
+        # Clean up when widget is destroyed
+        if self.scheduled_show:
+            self.widget.after_cancel(self.scheduled_show)
+        self.hide_tooltip()
 
