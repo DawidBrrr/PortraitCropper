@@ -10,6 +10,7 @@ from Frames import PathFrame
 #from Frames import AttributeParsingFrame
 from Frames import PreviewFrame
 from Frames import OutputFileNameFrame
+from Frames import TransformationsFrame
 from Cropper import CropperClass
 from Popups import RotateProgressBarPopup
 from Popups import FlipProgressBarPopup
@@ -74,7 +75,9 @@ ctk.set_default_color_theme("blue")
 
 global_dpi = None
 
-
+#TODO add segmented button with presets at the top of the window
+#TODO fix paths with polish characters
+#TODO add a switch quick cropping => advanced cropping
 #Aplikacja
 class App(ctk.CTk):
     def __init__(self):
@@ -90,12 +93,13 @@ class App(ctk.CTk):
         self.grid_columnconfigure(0, weight=2)  # Preview section - 2/3
         self.grid_columnconfigure(1, weight=1)  # Controls section - 1/3
 
-        # Create two main containers
+        # Preview container
         self.preview_container = ctk.CTkFrame(self)
         self.preview_container.grid(row=0, column=0, sticky="nsew", padx=(20,10), pady=20)
         self.preview_container.grid_rowconfigure(0, weight=1)
         self.preview_container.grid_columnconfigure(0, weight=1)
 
+        #Controls container
         self.controls_container = ctk.CTkScrollableFrame(self)
         self.controls_container.grid(row=0, column=1, sticky="nsew", padx=(10,20), pady=20)
         self.controls_container.grid_columnconfigure(0, weight=1)
@@ -103,19 +107,27 @@ class App(ctk.CTk):
         self.title_font = ctk.CTkFont(family="Oswald", size=50, weight="bold")
         self.text_font = ctk.CTkFont(family="Arial", size=18)
 
-        # Add frames to controls container
+        # Toolbar frame
         self.toolbar_frame = ctk.CTkFrame(self.controls_container, fg_color="gray15")
         self.toolbar_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         self.toolbar_frame.grid_columnconfigure((0,1,2,3), weight=1)
 
+        #Path Frame
         self.path_frame = PathFrame(self.controls_container, None)
         self.path_frame.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
 
-        self.input_data_frame = InputsFrame(self.controls_container)
-        self.input_data_frame.grid(row=2, column=0, padx=5, pady=5, sticky="ew")
+        #Transformations Frame
+        self.transformations_frame = TransformationsFrame(self.controls_container)
+        self.transformations_frame.grid(row=2, column=0, padx=5, pady=5, sticky="ew")
+        
 
+        #Input Data Frame
+        self.input_data_frame = InputsFrame(self.controls_container)
+        self.input_data_frame.grid(row=3, column=0, padx=5, pady=5, sticky="ew")
+
+        #Output File Name Frame
         self.output_file_name_frame = OutputFileNameFrame(self.controls_container)
-        self.output_file_name_frame.grid(row=3, column=0, padx=5, pady=5, sticky="ew")
+        self.output_file_name_frame.grid(row=4, column=0, padx=5, pady=5, sticky="ew")
 
         # Add preview frame to preview container
         self.preview_frame = PreviewFrame(self.preview_container, self.input_data_frame)
@@ -134,20 +146,33 @@ class App(ctk.CTk):
         self.scale_dropdown.grid(row=0, column=0, padx=5, pady=5, sticky="w")
 
         #button for rotating all images 90 degrees
-        self.rotate_button = ctk.CTkButton(self.toolbar_frame,
-                                        text="Obróć",
-                                        command=self.rotate_images)
-        self.rotate_button.grid(row=0, column=1, padx=5, pady=5, sticky="e")
+        self.rotate_90_button = ctk.CTkButton(self.transformations_frame,
+                                        text="Obróć o 90°",
+                                        command=lambda: self.rotate_images(90))
+        self.rotate_90_button.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+
+        #button for rotating all images 180 degrees
+        self.rotate_180_button = ctk.CTkButton(self.transformations_frame,
+                                        text="Obróć o 180°",
+                                        command=lambda: self.rotate_images(180))
+        self.rotate_180_button.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+
+        #button for rotating all images 270 degrees
+        self.rotate_270_button = ctk.CTkButton(self.transformations_frame,
+                                        text="Obróć o 270°",
+                                        command=lambda: self.rotate_images(270))
+        self.rotate_270_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
         #button for flipping all images horizontally
-        self.flip_button = ctk.CTkButton(self.toolbar_frame,
+        self.flip_button = ctk.CTkButton(self.transformations_frame,
                                         text="Lustrzane",
                                         command=self.flip_images)
-        self.flip_button.grid(row=0, column=2, padx=5, pady=5, sticky="e")        
+        self.flip_button.grid(row=0, column=3, padx=5, pady=5, sticky="ew")        
         
         #cropping button
         self.crop_button = ctk.CTkButton(self.toolbar_frame, 
-                                       text="Skadruj", 
+                                       text="Skadruj",
+                                       font=("Arial", 16, "bold"),
                                        command=self.CropButton)
         self.crop_button.grid(row=0, column=3, padx=5, pady=5, sticky="e")
 
@@ -197,8 +222,8 @@ class App(ctk.CTk):
                 shutil.rmtree(folder)
                 os.makedirs(folder)#recreating empty folders
 
-    #Rotate images 90 degrees 
-    def rotate_images(self):
+    #Rotate images 
+    def rotate_images(self,degrees):
         def rotate_process():
             try:
                 if not self.path_frame.input_entry.get():
@@ -221,8 +246,13 @@ class App(ctk.CTk):
                                 print(f"Warning: Could not open or find the image {filename}. Skipping.")
                                 continue
 
-                            # rotate image
-                            rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+                            # Choose rotation based on degrees
+                            if degrees == 90:
+                                rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
+                            elif degrees == 180:
+                                rotated_image = cv2.rotate(image, cv2.ROTATE_180)
+                            elif degrees == 270:
+                                rotated_image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
                             # Save the rotated image, replacing the original image
                             cv2.imwrite(file_path, rotated_image)                                                    

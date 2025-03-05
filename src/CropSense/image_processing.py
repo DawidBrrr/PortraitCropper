@@ -33,7 +33,6 @@ def cv2_imwrite_unicode(filename, image):
         return False
 
 
-#TODO make it choose face with highest confidence
 def process_image(image_path,
                   error_folder,
                   output_folder,
@@ -330,7 +329,6 @@ def draw_rectangle(endX,
 
     return is_error
 
-#TODO fix polish characters in filenames
 def generate_filename(original_filename,original_extension,naming_config,index=None):
         parts = []
 

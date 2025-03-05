@@ -689,6 +689,15 @@ class OutputFileNameFrame(ctk.CTkFrame):
             "numbering_type": self.output_file_name_numbering_dropdown.get(),                
             "extension": self.output_file_name_extension_dropdown.get()
         }
+    
+class TransformationsFrame(ctk.CTkFrame):
+    def __init__(self,master):
+        super().__init__(master,fg_color="gray15")
+
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure((0,1,2,3), weight=1)
+
+        
 
 
 

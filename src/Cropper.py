@@ -4,7 +4,6 @@ from Popups import CroppingProgressBarPopup
 import os
 from PIL import Image
 
-
 class CropperClass:
     def __init__(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value,naming_config):
         self.input_path = input_path
