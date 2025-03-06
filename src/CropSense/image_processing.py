@@ -6,6 +6,7 @@ from tqdm import tqdm
 from datetime import datetime
 import numpy as np
 from CropSense import variable
+from utils import *
 
 def images_error(image_path, error_folder):
     shell = win32com.client.Dispatch("WScript.Shell")
@@ -15,12 +16,12 @@ def images_error(image_path, error_folder):
     shortcut.TargetPath = os.path.abspath(image_path)
     shortcut.Save()
 
-
+"""
 def cv2_imwrite_unicode(filename, image):
-    """
+    
     Workaround for cv2.imwrite not supporting Unicode filenames on Windows.
     Encode the image into a memory buffer and write it using Python's open().
-    """
+    
     # Get file extension (e.g., '.png', '.jpg')
     ext = os.path.splitext(filename)[1]
     # cv2.imencode expects the extension with a dot, so ensure it's correct.
@@ -31,7 +32,7 @@ def cv2_imwrite_unicode(filename, image):
         return True
     else:
         return False
-
+"""
 
 def process_image(image_path,
                   error_folder,
@@ -71,7 +72,7 @@ def process_image(image_path,
     
     is_error = False
     original_filename, original_extension = os.path.splitext(os.path.basename(image_path))
-    image = cv2.imread(image_path)
+    image = cv2_imread_unicode(image_path)
     image_format = imghdr.what(image_path)
     supported_formats = ["jpg", "jpeg", "png", "webp"]
     if image_format is None or image_format not in supported_formats:

@@ -222,7 +222,7 @@ class App(ctk.CTk):
                 shutil.rmtree(folder)
                 os.makedirs(folder)#recreating empty folders
 
-    #Rotate images 
+    #Rotate images #TODO use utils/cv2_imwrite_unicode
     def rotate_images(self,degrees):
         def rotate_process():
             try:
