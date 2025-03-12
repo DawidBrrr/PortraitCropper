@@ -11,9 +11,11 @@ from Frames import PathFrame
 from Frames import PreviewFrame
 from Frames import OutputFileNameFrame
 from Frames import TransformationsFrame
+from Frames import ToolBarFrame
 from Cropper import CropperClass
 from Popups import RotateProgressBarPopup
 from Popups import FlipProgressBarPopup
+from utils import *
 import cv2
 from PIL import Image
 from tkinter import messagebox
@@ -108,10 +110,9 @@ class App(ctk.CTk):
         self.text_font = ctk.CTkFont(family="Arial", size=18)
 
         # Toolbar frame
-        self.toolbar_frame = ctk.CTkFrame(self.controls_container, fg_color="gray15")
+        self.toolbar_frame = ToolBarFrame(self.controls_container)
         self.toolbar_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
-        self.toolbar_frame.grid_columnconfigure((0,1,2,3), weight=1)
-
+        
         #Path Frame
         self.path_frame = PathFrame(self.controls_container, None)
         self.path_frame.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
@@ -239,7 +240,7 @@ class App(ctk.CTk):
                         # Check if the file is an image (simple check based on file extension)
                         if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff')):
                             # Read the image
-                            image = cv2.imread(file_path)
+                            image = cv2_imread_unicode(file_path)
 
                             # Check if image is loaded properly
                             if image is None:
@@ -255,7 +256,7 @@ class App(ctk.CTk):
                                 rotated_image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
                             # Save the rotated image, replacing the original image
-                            cv2.imwrite(file_path, rotated_image)                                                    
+                            cv2_imwrite_unicode(file_path, rotated_image)                                                    
             except Exception as e:
                 logging.exception(f"Error while rotating images: {e}")
             finally:
@@ -306,7 +307,7 @@ class App(ctk.CTk):
                         # Check if the file is an image (simple check based on file extension)
                         if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.tiff')):
                             # Read the image
-                            image = cv2.imread(file_path)
+                            image = cv2_imread_unicode(file_path)
 
                             # Check if image is loaded properly
                             if image is None:
@@ -317,7 +318,7 @@ class App(ctk.CTk):
                             flipped_image = cv2.flip(image, 1) # 1 for horizontal flip, 0 for vertical flip
 
                             # Save the flipped image, replacing the original image
-                            cv2.imwrite(file_path, flipped_image)                                                    
+                            cv2_imwrite_unicode(file_path, flipped_image)                                                    
             except Exception as e:
                 logging.exception(f"Error while flipping images: {e}")
             finally:

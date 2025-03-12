@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 
+#TODO becouse of this two functions antivirus can block the program
 def cv2_imwrite_unicode(filepath, image):
     """
     Workaround for cv2.imwrite not supporting Unicode filenames on Windows.
