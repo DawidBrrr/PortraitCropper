@@ -1,8 +1,4 @@
-import json
-import os
-import logging
-
-DEFAULT_PRESETS = {
+{
     "Preset1": {
         "name": "Preset1",
         "output_size_x": 600,
@@ -44,7 +40,3 @@ DEFAULT_PRESETS = {
         "unit": "px"
     }
 }
-
-#TODO make finding root better 
-CONFIG_FILE = os.path.join("InternalData", "presets.json")
-

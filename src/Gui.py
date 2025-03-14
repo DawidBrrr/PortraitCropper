@@ -177,6 +177,9 @@ class App(ctk.CTk):
                                        command=self.CropButton)
         self.crop_button.grid(row=0, column=3, padx=5, pady=5, sticky="e")
 
+        #Connect input_data_frame to toolbar_frame
+        self.toolbar_frame.input_data_frame = self.input_data_frame
+
         # Bind the close event to cleanup
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
