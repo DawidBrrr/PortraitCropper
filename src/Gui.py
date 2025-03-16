@@ -210,6 +210,7 @@ class App(ctk.CTk):
             cropper.CropFaces(self)
 
     def on_closing(self):
+        self.toolbar_frame.save_current_preset()
         self.cleanup_placeholder_folders()
         self.destroy()
 

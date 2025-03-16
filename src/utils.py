@@ -1,6 +1,8 @@
 import os
 import cv2
 import numpy as np
+from Presets import DEFAULT_PRESETS, CONFIG_FILE
+import json
 
 #TODO becouse of this two functions antivirus can block the program
 def cv2_imwrite_unicode(filepath, image):
@@ -79,3 +81,18 @@ def cv2_imread_unicode(filepath):
     except Exception as e:
         print(f"Error reading image at {normalized_path}: {str(e)}")
         return None
+    
+
+def load_presets():
+    try:
+        with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        save_presets(DEFAULT_PRESETS)
+        return DEFAULT_PRESETS
+    
+def save_presets(presets):
+    if not os.path.exists(CONFIG_FILE):
+        os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
+    with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
+        json.dump(presets, f, indent=4, ensure_ascii=False)

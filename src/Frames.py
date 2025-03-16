@@ -6,8 +6,9 @@ import threading
 from queue import Queue
 from PIL import Image
 from CropSense import image_processing 
-from Presets import DEFAULT_PRESETS, CONFIG_FILE
+from utils import save_presets, load_presets
 import json
+import logging
 
 
 global_input_path = None
@@ -20,6 +21,10 @@ class InputsFrame(ctk.CTkFrame):
         super().__init__(master,fg_color="gray15")
 
         self.grid_columnconfigure((0, 3), weight=1)
+
+        self.presets = load_presets()
+        preset1 = next((preset for preset in self.presets.values() 
+                       if preset["name"] == "Preset1"), None)
         
         # Top margin
         self.top_margin_label = ctk.CTkLabel(self, text="Górny margines")
@@ -29,6 +34,8 @@ class InputsFrame(ctk.CTkFrame):
 
         self.top_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.top_margin_slider_value)
         self.top_margin_slider.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        if preset1:
+            self.top_margin_slider.set(preset1["top_margin"])
 
         self.top_margin_entry = ctk.CTkEntry(self)
         self.top_margin_entry.grid(row=0, column=2, padx=10, pady=10, sticky="nw")
@@ -45,6 +52,8 @@ class InputsFrame(ctk.CTkFrame):
 
         self.bottom_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.bottom_margin_slider_value)
         self.bottom_margin_slider.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        if preset1:
+            self.bottom_margin_slider.set(preset1["bottom_margin"])
 
         self.bottom_margin_entry = ctk.CTkEntry(self)
         self.bottom_margin_entry.grid(row=1, column=2, padx=10, pady=10, sticky="nw")
@@ -61,6 +70,8 @@ class InputsFrame(ctk.CTkFrame):
 
         self.left_right_margin_slider = ctk.CTkSlider(self, from_=-1, to=1, command=self.left_right_slider_margin_value)
         self.left_right_margin_slider.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+        if preset1:
+            self.left_right_margin_slider.set(preset1["left_right_margin"])
 
         self.left_right_margin_entry = ctk.CTkEntry(self)
         self.left_right_margin_entry.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
@@ -77,12 +88,19 @@ class InputsFrame(ctk.CTkFrame):
 
         self.output_size_entryx = ctk.CTkEntry(self)
         self.output_size_entryx.grid(row=3, column=1, padx=10, pady=10, sticky="ne")
-        self.output_size_entryx.insert(0,"1080")
+        if preset1:
+            self.output_size_entryx.insert(0, str(preset1["output_size_x"]))
+        else:
+            self.output_size_entryx.insert(0,"1080")
+
         self.output_size_entryx.bind("<Return>", self.update_output_size)
 
         self.output_size_entryy = ctk.CTkEntry(self)
         self.output_size_entryy.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
-        self.output_size_entryy.insert(0,"1080")
+        if preset1:
+            self.output_size_entryy.insert(0, str(preset1["output_size_y"]))
+        else:
+            self.output_size_entryy.insert(0,"1080")
         self.output_size_entryy.bind("<Return>", self.update_output_size)
 
         # Unit selection dropdown
@@ -100,7 +118,10 @@ class InputsFrame(ctk.CTkFrame):
 
         self.dpi_entry = ctk.CTkEntry(self)
         self.dpi_entry.grid(row=4, column=1, padx=10, pady=10, sticky="ne")
-        self.dpi_entry.insert(0,"96")
+        if preset1:
+            self.dpi_entry.insert(0, str(preset1["dpi"]))
+        else:
+            self.dpi_entry.insert(0, "96")
 
         #self.change_dpi_button = ctk.CTkButton(self, text="Zmień DPI", command=self.change_image_dpi)
         #self.change_dpi_button.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
@@ -285,7 +306,6 @@ class InputsFrame(ctk.CTkFrame):
                     return int((y_value / 2.54) * dpi)  # Convert cm to inches and then to pixels
         except ValueError:
             return 100  # Default to 100 px if invalid
-
 
 
 #Path Frame
@@ -709,7 +729,7 @@ class ToolBarFrame(ctk.CTkFrame):
         self.input_data_frame = None
 
         #Load Presets
-        self.presets = self.load_presets()
+        self.presets = load_presets()
         preset_names = [preset["name"] for preset in self.presets.values()]
 
         #Presets segmented button
@@ -719,57 +739,74 @@ class ToolBarFrame(ctk.CTkFrame):
             command=self.on_preset_change
         )
         self.preset_segment.grid(row=0, column=1,columnspan=2, padx=10, pady=10, sticky="ew")
-        self.preset_segment.set(preset_names[0])
+        self.current_preset = preset_names[0]
+        self.preset_segment.set(self.current_preset)
 
-    def load_presets(self):
-        try:
-            with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except FileNotFoundError:
-            self.save_presets(DEFAULT_PRESETS)
-            return DEFAULT_PRESETS
-        
-    def save_presets(self, presets):
-        if not os.path.exists(CONFIG_FILE):
-            os.makedirs(os.path.dirname(CONFIG_FILE), exist_ok=True)
-        with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
-            json.dump(presets, f, indent=4, ensure_ascii=False)
+    def save_current_preset(self):
+        try:            
+            #get current values
+            current_values = {
+                "name": self.current_preset,
+                "output_size_x": int(self.input_data_frame.output_size_entryx.get()),
+                "output_size_y": int(self.input_data_frame.output_size_entryy.get()),
+                "dpi": int(self.input_data_frame.dpi_entry.get()),
+                "top_margin": float(self.input_data_frame.top_margin_entry.get()),
+                "bottom_margin": float(self.input_data_frame.bottom_margin_entry.get()),
+                "left_right_margin": float(self.input_data_frame.left_right_margin_entry.get())
+            }
+            #Update presets dictionary
+            preset_key = next(
+                (key for key, preset in self.presets.items()
+                 if preset["name"] == self.current_preset),None
+            )
+            if preset_key:
+                logging.info(f"Updating preset: {self.current_preset}")
+                self.presets[preset_key].update(current_values)
+                save_presets(self.presets)
+        except Exception as e:
+            logging.info(f"Error saving preset: {e}")
 
-    #TODO loading working not savings
     def on_preset_change(self, preset_name):
-        # Find the preset configuration
-        preset_config = next(
-            (preset for preset in self.presets.values() if preset["name"] == preset_name),
-            None
-        )
-        
-        if preset_config:
+        if preset_name != self.current_preset:
+            #Save current preset before switching
+            self.save_current_preset()
 
-            # Update all values
-            self.input_data_frame.output_size_entryx.delete(0, ctk.END)
-            self.input_data_frame.output_size_entryx.insert(0, str(preset_config["output_size_x"]))
-            
-            self.input_data_frame.output_size_entryy.delete(0, ctk.END)
-            self.input_data_frame.output_size_entryy.insert(0, str(preset_config["output_size_y"]))
-            
-            self.input_data_frame.dpi_entry.delete(0, ctk.END)
-            self.input_data_frame.dpi_entry.insert(0, str(preset_config["dpi"]))
-            
-            self.input_data_frame.top_margin_slider.set(preset_config["top_margin"])
-            self.input_data_frame.top_margin_entry.delete(0, ctk.END)
-            self.input_data_frame.top_margin_entry.insert(0, str(preset_config["top_margin"]))
+            #Update current preset name
+            self.current_preset = preset_name
 
-            self.input_data_frame.bottom_margin_slider.set(preset_config["bottom_margin"])
-            self.input_data_frame.bottom_margin_entry.delete(0, ctk.END)
-            self.input_data_frame.bottom_margin_entry.insert(0, str(preset_config["bottom_margin"]))
-
-            self.input_data_frame.left_right_margin_slider.set(preset_config["left_right_margin"])
-            self.input_data_frame.left_right_margin_entry.delete(0, ctk.END)
-            self.input_data_frame.left_right_margin_entry.insert(0, str(preset_config["left_right_margin"]))
+            # Find the preset configuration
+            preset_config = next(
+                (preset for preset in self.presets.values() if preset["name"] == preset_name),
+                None
+            )
             
-            # Update preview if available
-            if self.input_data_frame.preview_frame:
-                self.input_data_frame.preview_frame.preview_image()
+            if preset_config:
+
+                # Update all values
+                self.input_data_frame.output_size_entryx.delete(0, ctk.END)
+                self.input_data_frame.output_size_entryx.insert(0, str(preset_config["output_size_x"]))
+                
+                self.input_data_frame.output_size_entryy.delete(0, ctk.END)
+                self.input_data_frame.output_size_entryy.insert(0, str(preset_config["output_size_y"]))
+                
+                self.input_data_frame.dpi_entry.delete(0, ctk.END)
+                self.input_data_frame.dpi_entry.insert(0, str(preset_config["dpi"]))
+                
+                self.input_data_frame.top_margin_slider.set(preset_config["top_margin"])
+                self.input_data_frame.top_margin_entry.delete(0, ctk.END)
+                self.input_data_frame.top_margin_entry.insert(0, str(preset_config["top_margin"]))
+
+                self.input_data_frame.bottom_margin_slider.set(preset_config["bottom_margin"])
+                self.input_data_frame.bottom_margin_entry.delete(0, ctk.END)
+                self.input_data_frame.bottom_margin_entry.insert(0, str(preset_config["bottom_margin"]))
+
+                self.input_data_frame.left_right_margin_slider.set(preset_config["left_right_margin"])
+                self.input_data_frame.left_right_margin_entry.delete(0, ctk.END)
+                self.input_data_frame.left_right_margin_entry.insert(0, str(preset_config["left_right_margin"]))
+                
+                # Update preview if available
+                if self.input_data_frame.preview_frame:
+                    self.input_data_frame.preview_frame.preview_image()
         
 
         
