@@ -1,11 +1,13 @@
-from CropSense import image_processing
+from FastCropper import image_processing
+from AccurateCropper import Cropper
 import threading
+import shutil
 from Popups import CroppingProgressBarPopup
 import os
 from PIL import Image
 
 class CropperClass:
-    def __init__(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value,naming_config):
+    def __init__(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value,naming_config,accurate_mode):
         self.input_path = input_path
         self.output_path = output_path
         self.debug_output = debug_output        
@@ -15,27 +17,82 @@ class CropperClass:
         self.bottom_margin_value = bottom_margin_value
         self.left_right_margin_value = left_right_margin_value
         self.naming_config = naming_config
+        self.accurate_mode = accurate_mode
 
     
-    def CropProcess(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value,naming_config):
+    def CropProcess(self,input_path,output_path,debug_output,res_x,res_y,top_margin_value,bottom_margin_value,left_right_margin_value,naming_config,accurate_mode):
         input_files = [os.path.join(input_path, file) for file in os.listdir(input_path)]
+        temp_output = os.path.join("InternalData","temp_output")
+        if not os.path.exists(temp_output):
+            os.makedirs(temp_output)
+
         try:
             image_count = 0
-            for image_path in input_files: # TODO in output folder create 2 folders success and error
-                image_processing.process_image(image_path=image_path,
-                                        error_folder=debug_output,
-                                        output_folder=output_path,
-                                        debug_output=debug_output,                                        
-                                        res_x=res_x,
-                                        res_y=res_y,                                                                                
-                                        top_margin_value = top_margin_value,
-                                        bottom_margin_value = bottom_margin_value,
-                                        left_right_margin_value = left_right_margin_value,
-                                        naming_config = naming_config,
-                                        image_count = image_count)
+            if accurate_mode:
+                #Stage 1 adding 20% to margins
+                temp_top = top_margin_value * 1.5
+                temp_bottom = bottom_margin_value * 1.5
+                temp_sides = left_right_margin_value * 1.5
+                for image_path in input_files:
+                    image_processing.process_image(
+                        image_path=image_path,
+                        error_folder=debug_output,
+                        output_folder=temp_output,
+                        debug_output=debug_output,
+                        res_x=res_x,
+                        res_y=res_y,
+                        top_margin_value=temp_top,
+                        bottom_margin_value=temp_bottom,
+                        left_right_margin_value=temp_sides,
+                        naming_config=naming_config,
+                        image_count=image_count
+                    )
+
+                #Stage 2 Precise and final cropp
+                # Compute face factor
+                face_factor = 1 / (1 + temp_top + temp_bottom)
+        
+                # Compute translation in y-direction (vertical adjustment)
+                translation_y = ((temp_top - temp_bottom) / (1 + temp_top + temp_bottom)) * res_y
+        
+                # Compute translation in x-direction (assumes equal left/right margin impact)
+                translation_x = ((-temp_sides + temp_sides) / (1 + temp_sides + temp_sides)) * res_x  # Should be 0 unless margins differ
+
+
+
+                cropper = Cropper(face_factor=face_factor,
+                                  output_size=(res_x, res_y),
+                                  strategy="largest",
+                                  padding="replicate",
+                                  translation=(translation_x, translation_y),)
+                cropper.process_dir(input_dir=temp_output, output_dir=output_path)
+
+
+
+
+
+            else:
+                for image_path in input_files: # TODO in output folder create 2 folders success and error
+                    image_processing.process_image(image_path=image_path,
+                                            error_folder=debug_output,
+                                            output_folder=output_path,
+                                            debug_output=debug_output,                                        
+                                            res_x=res_x,
+                                            res_y=res_y,                                                                                
+                                            top_margin_value = top_margin_value,
+                                            bottom_margin_value = bottom_margin_value,
+                                            left_right_margin_value = left_right_margin_value,
+                                            naming_config = naming_config,
+                                            image_count = image_count)
                 image_count += 1
         except Exception as e:
             print(f"Error in Cropper: {e}")
+        finally:
+            if os.path.exists(temp_output):
+                try:
+                    shutil.rmtree(temp_output)
+                except Exception as e:
+                    print(f"Error cleaning up temporary directory: {e}")
         
 
 
@@ -43,7 +100,7 @@ class CropperClass:
 
         def RunCropProcess():
             try:
-                self.CropProcess(self.input_path,self.output_path,self.debug_output,self.res_x,self.res_y,self.top_margin_value,self.bottom_margin_value,self.left_right_margin_value,self.naming_config)
+                self.CropProcess(self.input_path,self.output_path,self.debug_output,self.res_x,self.res_y,self.top_margin_value,self.bottom_margin_value,self.left_right_margin_value,self.naming_config,self.accurate_mode)
 
             except Exception as e:
                 print(f"Error in Cropper: {e}")

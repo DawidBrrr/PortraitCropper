@@ -5,7 +5,7 @@ import win32com.client
 from tqdm import tqdm
 from datetime import datetime
 import numpy as np
-from CropSense import variable
+from FastCropper import variable
 from utils import *
 
 def images_error(image_path, error_folder):

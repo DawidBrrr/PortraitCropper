@@ -5,7 +5,7 @@ import tkinter.filedialog as filedialog
 import threading
 from queue import Queue
 from PIL import Image
-from CropSense import image_processing 
+from Cropper import CropperClass
 from utils import save_presets, load_presets
 import json
 import logging
@@ -574,23 +574,19 @@ class PreviewFrame(ctk.CTkFrame):
 
     def _process_image(self):
         """Process image in background thread"""
-        try:
-            self.image_path = os.path.join(self.placeholder_folder, os.listdir(self.placeholder_folder)[0])
-
-            image_processing.process_image(
-                image_path=self.image_path,
-                error_folder=self.bugs_folder_path,
-                output_folder=self.edited_folder_path,
-                debug_output=self.bugs_folder_path,                                       
-                res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
-                res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),                                                            
-                top_margin_value=float(self.input_data_frame.top_margin_entry.get()),
-                bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
-                left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()),
-                naming_config=None,
-                image_count=0
-            )
-
+        try:            
+            CropperClass.CropProcess(self=self,
+                                     input_path=self.placeholder_folder,
+                                     output_path=self.edited_folder_path,
+                                     debug_output=self.bugs_folder_path,
+                                     res_x=int(self.input_data_frame.get_x_in_px(self.placeholder_folder)),
+                                     res_y=int(self.input_data_frame.get_y_in_px(self.placeholder_folder)),
+                                     top_margin_value=float(self.input_data_frame.top_margin_entry.get()),
+                                     bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
+                                     left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()),
+                                     naming_config=None,
+                                     accurate_mode=True)
+            
             # Schedule UI update in main thread
             self.after(0, self._update_preview)
         except Exception as e:

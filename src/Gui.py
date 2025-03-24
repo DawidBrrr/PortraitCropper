@@ -206,7 +206,8 @@ class App(ctk.CTk):
                                    top_margin_value=float(self.input_data_frame.top_margin_entry.get()),
                                    bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
                                    left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()),                                                                   
-                                   naming_config = self.output_file_name_frame.get_naming_config())
+                                   naming_config = self.output_file_name_frame.get_naming_config(),
+                                   accurate_mode = False) 
             cropper.CropFaces(self)
 
     def on_closing(self):
@@ -220,9 +221,10 @@ class App(ctk.CTk):
         edited_images_placeholder_path = os.path.join(internal_data_path,"Edited IMAGE Placeholder")
         images_placeholder_path = os.path.join(internal_data_path,"IMAGE Placeholder")
         debug_placeholder_path = os.path.join(internal_data_path,"Debug")
+        temporary_output_path = os.path.join(internal_data_path,"temp_output")
 
         #cleanup folders
-        for folder in [edited_images_placeholder_path,images_placeholder_path,debug_placeholder_path]:
+        for folder in [edited_images_placeholder_path,images_placeholder_path,debug_placeholder_path,temporary_output_path]:
             if os.path.exists(folder):
                 shutil.rmtree(folder)
                 os.makedirs(folder)#recreating empty folders
