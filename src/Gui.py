@@ -77,9 +77,8 @@ ctk.set_default_color_theme("blue")
 
 global_dpi = None
 
-#TODO add segmented button with presets at the top of the window
-#TODO fix paths with polish characters
 #TODO add a switch quick cropping => advanced cropping
+#TODO make margin sliders larger range
 #Aplikacja
 class App(ctk.CTk):
     def __init__(self):
@@ -207,7 +206,7 @@ class App(ctk.CTk):
                                    bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
                                    left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()),                                                                   
                                    naming_config = self.output_file_name_frame.get_naming_config(),
-                                   accurate_mode = False) 
+                                   accurate_mode = self.input_data_frame.get_crop_mode()) 
             cropper.CropFaces(self)
 
     def on_closing(self):

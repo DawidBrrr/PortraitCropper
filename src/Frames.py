@@ -26,6 +26,8 @@ class InputsFrame(ctk.CTkFrame):
         preset1 = next((preset for preset in self.presets.values() 
                        if preset["name"] == "Preset1"), None)
         
+        self.accurate_mode = False
+        
         # Top margin
         self.top_margin_label = ctk.CTkLabel(self, text="Górny margines")
         self.top_margin_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
@@ -122,6 +124,15 @@ class InputsFrame(ctk.CTkFrame):
             self.dpi_entry.insert(0, str(preset1["dpi"]))
         else:
             self.dpi_entry.insert(0, "96")
+
+        self.crop_mode_label = ctk.CTkLabel(self, text="Tryb kadrowania")
+        self.crop_mode_label.grid(row=5, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_crop_mode_label = Tooltip(self.crop_mode_label,"Wybierz tryb kadrowania\n"
+                                                                     "szybki bądź dokładny(wysokie zużycie mocy obliczeniowej)")
+
+        self.crop_mode_segmented_button = ctk.CTkSegmentedButton(self, values=["Szybki", "Dokładny"], command=self.crop_mode_changed)
+        self.crop_mode_segmented_button.grid(row=5, column=1, padx=10, pady=10, sticky="nsew")
+        self.crop_mode_segmented_button.set("Szybki")  # Default value                
 
         #self.change_dpi_button = ctk.CTkButton(self, text="Zmień DPI", command=self.change_image_dpi)
         #self.change_dpi_button.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
@@ -307,6 +318,21 @@ class InputsFrame(ctk.CTkFrame):
         except ValueError:
             return 100  # Default to 100 px if invalid
 
+    def crop_mode_changed(self,value=None):
+        """Handle crop mode change."""
+        selected_mode = self.crop_mode_segmented_button.get()
+        if selected_mode == "Szybki":
+            self.accurate_mode = False
+        elif selected_mode == "Dokładny":
+            self.accurate_mode = True
+
+        if self.preview_frame:
+            self.preview_frame.preview_image()
+
+
+    def get_crop_mode(self):
+        """Return the crop mode."""
+        return self.accurate_mode
 
 #Path Frame
 class PathFrame(ctk.CTkFrame):
@@ -585,7 +611,7 @@ class PreviewFrame(ctk.CTkFrame):
                                      bottom_margin_value=float(self.input_data_frame.bottom_margin_entry.get()),
                                      left_right_margin_value=float(self.input_data_frame.left_right_margin_entry.get()),
                                      naming_config=None,
-                                     accurate_mode=True)
+                                     accurate_mode=self.input_data_frame.get_crop_mode())
             
             # Schedule UI update in main thread
             self.after(0, self._update_preview)
