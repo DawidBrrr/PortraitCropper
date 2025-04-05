@@ -4,8 +4,8 @@
         "output_size_x": 1080,
         "output_size_y": 1080,
         "dpi": 96,
-        "top_margin": 0.27,
-        "bottom_margin": 0.27,
+        "top_margin": 0.5,
+        "bottom_margin": 0.51,
         "left_right_margin": 0.0,
         "unit": "px"
     },

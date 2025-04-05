@@ -2,6 +2,7 @@ from FastCropper import image_processing
 from AccurateCropper import Cropper
 import threading
 import shutil
+import math
 from Popups import CroppingProgressBarPopup
 import os
 from PIL import Image
@@ -33,14 +34,16 @@ class CropperClass:
                 temp_top = top_margin_value * 1.5
                 temp_bottom = bottom_margin_value * 1.5
                 temp_sides = left_right_margin_value * 1.5
+                temp_res_x = int(math.ceil(res_x * 1.5))
+                temp_res_y = int(math.ceil(res_y * 1.5))
                 for image_path in input_files:
                     image_processing.process_image(
                         image_path=image_path,
                         error_folder=debug_output,
                         output_folder=temp_output,
                         debug_output=debug_output,
-                        res_x=res_x,
-                        res_y=res_y,
+                        res_x=temp_res_x,
+                        res_y=temp_res_y,
                         top_margin_value=temp_top,
                         bottom_margin_value=temp_bottom,
                         left_right_margin_value=temp_sides,
@@ -50,13 +53,13 @@ class CropperClass:
 
                 #Stage 2 Precise and final cropp
                 # Compute face factor
-                face_factor = 1 / (1 + temp_top + temp_bottom)
+                face_factor = 1 / (1 + top_margin_value + bottom_margin_value)
         
                 # Compute translation in y-direction (vertical adjustment)
-                translation_y = ((temp_top - temp_bottom) / (1 + temp_top + temp_bottom)) * res_y
+                translation_y = ((top_margin_value - bottom_margin_value) / (1 + top_margin_value + bottom_margin_value)) * res_y
         
                 # Compute translation in x-direction (assumes equal left/right margin impact)
-                translation_x = ((-temp_sides + temp_sides) / (1 + temp_sides + temp_sides)) * res_x  # Should be 0 unless margins differ
+                translation_x = left_right_margin_value * res_x  
 
 
 

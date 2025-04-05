@@ -27,20 +27,42 @@ class InputsFrame(ctk.CTkFrame):
                        if preset["name"] == "Preset1"), None)
         
         self.accurate_mode = False
+        #Sensivity checkboxes
+        self.sensivity_label = ctk.CTkLabel(self, text="Czułość ")
+        self.sensivity_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
+        self.tooltip_sensivity_label = Tooltip(self.sensivity_label, text="Określa zakres\n" \
+                                                                            "wartości parametrów \n")                                                                            
+        self.sensivity_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.sensivity_frame.grid(row=0, column=1,columnspan=3, padx=10, pady=10, sticky="nw")
+        self.sensitivity_var = ctk.StringVar(value="1") # Default
+
+        sensitivities = [("0.5x","0.5"),("x1", "1"), ("x2", "2"),("x5", "5"), ("x10", "10")]
+        for i, (text, value) in enumerate(sensitivities):
+            radio = ctk.CTkRadioButton(
+                self.sensivity_frame,
+                text=text,
+                value=value,
+                variable=self.sensitivity_var,
+                command=self.update_sensitivity
+            )
+            radio.grid(row=0, column=i, padx=5, pady=2, sticky="w")
+
+        
+        
         
         # Top margin
         self.top_margin_label = ctk.CTkLabel(self, text="Górny margines")
-        self.top_margin_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
+        self.top_margin_label.grid(row=1, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_top_margin = Tooltip(self.top_margin_label, 
             "Określa wielkość górnego marginesu\nwzględem wykrytej twarzy")
 
         self.top_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.top_margin_slider_value)
-        self.top_margin_slider.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        self.top_margin_slider.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
         if preset1:
             self.top_margin_slider.set(preset1["top_margin"])
 
         self.top_margin_entry = ctk.CTkEntry(self)
-        self.top_margin_entry.grid(row=0, column=2, padx=10, pady=10, sticky="nw")
+        self.top_margin_entry.grid(row=1, column=2, padx=10, pady=10, sticky="nw")
         self.top_margin_entry.bind("<Return>", self.top_margin_entry_value)
 
         # Initialize the top entry value
@@ -48,17 +70,17 @@ class InputsFrame(ctk.CTkFrame):
 
         # Bottom margin 
         self.bottom_margin_label = ctk.CTkLabel(self, text="Dolny margines")
-        self.bottom_margin_label.grid(row=1, column=0, padx=10, pady=10, sticky="ne")
+        self.bottom_margin_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_bottom_margin = Tooltip(self.bottom_margin_label,
             "Określa wielkość dolnego marginesu\nwzględem wykrytej twarzy")
 
         self.bottom_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.bottom_margin_slider_value)
-        self.bottom_margin_slider.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
+        self.bottom_margin_slider.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
         if preset1:
             self.bottom_margin_slider.set(preset1["bottom_margin"])
 
         self.bottom_margin_entry = ctk.CTkEntry(self)
-        self.bottom_margin_entry.grid(row=1, column=2, padx=10, pady=10, sticky="nw")
+        self.bottom_margin_entry.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
         self.bottom_margin_entry.bind("<Return>", self.bottom_margin_entry_value)
 
         # Initialize the bottom entry value
@@ -66,17 +88,17 @@ class InputsFrame(ctk.CTkFrame):
 
         # Left Right margin
         self.left_right_margin_label = ctk.CTkLabel(self, text="Lewo/Prawo margines")
-        self.left_right_margin_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
+        self.left_right_margin_label.grid(row=3, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_left_right_margin = Tooltip(self.left_right_margin_label,
             "Określa margines z lewej bądź prawej\nwzględem wykrytej twarzy")
 
         self.left_right_margin_slider = ctk.CTkSlider(self, from_=-1, to=1, command=self.left_right_slider_margin_value)
-        self.left_right_margin_slider.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
+        self.left_right_margin_slider.grid(row=3, column=1, padx=10, pady=10, sticky="nsew")
         if preset1:
             self.left_right_margin_slider.set(preset1["left_right_margin"])
 
         self.left_right_margin_entry = ctk.CTkEntry(self)
-        self.left_right_margin_entry.grid(row=2, column=2, padx=10, pady=10, sticky="nw")
+        self.left_right_margin_entry.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
         self.left_right_margin_entry.bind("<Return>", self.left_right_entry_margin_value)
 
         # Initialize the left right entry value
@@ -84,12 +106,12 @@ class InputsFrame(ctk.CTkFrame):
 
         # Output size of an image 
         self.output_size_label = ctk.CTkLabel(self, text="Wymiary zdjęcia(x,y)")
-        self.output_size_label.grid(row=3, column=0, padx=10, pady=10, sticky="ne")
+        self.output_size_label.grid(row=4, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_size_label = Tooltip(self.output_size_label,"Kolejno x-szerokość, y-wysokosć")
 
 
         self.output_size_entryx = ctk.CTkEntry(self)
-        self.output_size_entryx.grid(row=3, column=1, padx=10, pady=10, sticky="ne")
+        self.output_size_entryx.grid(row=4, column=1, padx=10, pady=10, sticky="ne")
         if preset1:
             self.output_size_entryx.insert(0, str(preset1["output_size_x"]))
         else:
@@ -98,7 +120,7 @@ class InputsFrame(ctk.CTkFrame):
         self.output_size_entryx.bind("<Return>", self.update_output_size)
 
         self.output_size_entryy = ctk.CTkEntry(self)
-        self.output_size_entryy.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
+        self.output_size_entryy.grid(row=4, column=2, padx=10, pady=10, sticky="nw")
         if preset1:
             self.output_size_entryy.insert(0, str(preset1["output_size_y"]))
         else:
@@ -109,29 +131,31 @@ class InputsFrame(ctk.CTkFrame):
         self.unit_options = ["px", "mm", "cm"]
         self.unit_var = ctk.StringVar(value=self.unit_options[0])
         self.unit_menu = ctk.CTkOptionMenu(self, variable=self.unit_var, values=self.unit_options, command=self.unit_changed)
-        self.unit_menu.grid(row=3, column=3, padx=10, pady=10, sticky="nw")
+        self.unit_menu.grid(row=4, column=3, padx=10, pady=10, sticky="nw")
     
 
         # DPI change section
         self.dpi_label = ctk.CTkLabel(self, text="Zmień DPI obrazu")
-        self.dpi_label.grid(row=4, column=0, padx=10, pady=10, sticky="ne")
+        self.dpi_label.grid(row=5, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_dpi_label = Tooltip(self.dpi_label,"Zmienia DPI wszystkich\n"
                                                         "zdjęć w folderze na tą wartość")
 
         self.dpi_entry = ctk.CTkEntry(self)
-        self.dpi_entry.grid(row=4, column=1, padx=10, pady=10, sticky="ne")
+        self.dpi_entry.grid(row=5, column=1, padx=10, pady=10, sticky="ne")
         if preset1:
             self.dpi_entry.insert(0, str(preset1["dpi"]))
         else:
             self.dpi_entry.insert(0, "96")
 
         self.crop_mode_label = ctk.CTkLabel(self, text="Tryb kadrowania")
-        self.crop_mode_label.grid(row=5, column=0, padx=10, pady=10, sticky="ne")
+        self.crop_mode_label.grid(row=6, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_crop_mode_label = Tooltip(self.crop_mode_label,"Wybierz tryb kadrowania\n"
-                                                                     "szybki bądź dokładny(wysokie zużycie mocy obliczeniowej)")
+                                                                     "szybki bądź dokładny(wysokie zużycie mocy obliczeniowej)\n" \
+                                                                     "Uwaga tryb dokładny działa w inny sposób od szybkiego\n" \
+                                                                     "Parametry kadrowania działają inaczej w obu trybach\n")
 
         self.crop_mode_segmented_button = ctk.CTkSegmentedButton(self, values=["Szybki", "Dokładny"], command=self.crop_mode_changed)
-        self.crop_mode_segmented_button.grid(row=5, column=1, padx=10, pady=10, sticky="nsew")
+        self.crop_mode_segmented_button.grid(row=6, column=1, padx=10, pady=10, sticky="nsew")
         self.crop_mode_segmented_button.set("Szybki")  # Default value                
 
         #self.change_dpi_button = ctk.CTkButton(self, text="Zmień DPI", command=self.change_image_dpi)
@@ -333,6 +357,32 @@ class InputsFrame(ctk.CTkFrame):
     def get_crop_mode(self):
         """Return the crop mode."""
         return self.accurate_mode
+    
+
+    def update_sensitivity(self):
+        """Update slider values based on selected sensitivity"""
+        try:
+            multiplier = float(self.sensitivity_var.get())
+            
+            # Store current values
+            top = float(self.top_margin_entry.get())
+            bottom = float(self.bottom_margin_entry.get()) 
+            left_right = float(self.left_right_margin_entry.get())
+            
+            # Update sliders with multiplied values while keeping within bounds
+            self.top_margin_slider.configure(
+                command=lambda x: self.top_margin_slider_value(x * multiplier))
+            self.bottom_margin_slider.configure(
+                command=lambda x: self.bottom_margin_slider_value(x * multiplier))
+            self.left_right_margin_slider.configure(
+                command=lambda x: self.left_right_slider_margin_value(x * multiplier))
+            
+            # Update preview if available
+            if self.preview_frame:
+                self.preview_frame.preview_image()
+                
+        except ValueError as e:
+            print(f"Error updating sensitivity: {e}")
 
 #Path Frame
 class PathFrame(ctk.CTkFrame):
