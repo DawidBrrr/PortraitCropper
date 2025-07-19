@@ -28,10 +28,9 @@ class InputsFrame(ctk.CTkFrame):
         
         self.accurate_mode = False
         #Sensivity checkboxes
-        self.sensivity_label = ctk.CTkLabel(self, text="Czułość ")
+        self.sensivity_label = ctk.CTkLabel(self, text="Sensivity ")
         self.sensivity_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
-        self.tooltip_sensivity_label = Tooltip(self.sensivity_label, text="Określa zakres\n" \
-                                                                            "wartości parametrów \n")                                                                            
+        self.tooltip_sensivity_label = Tooltip(self.sensivity_label, text="Defines the range\nof parameter values\n")                                                                            
         self.sensivity_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.sensivity_frame.grid(row=0, column=1,columnspan=3, padx=10, pady=10, sticky="nw")
         self.sensitivity_var = ctk.StringVar(value="1") # Default
@@ -51,10 +50,10 @@ class InputsFrame(ctk.CTkFrame):
         
         
         # Top margin
-        self.top_margin_label = ctk.CTkLabel(self, text="Górny margines")
+        self.top_margin_label = ctk.CTkLabel(self, text="Top margin")
         self.top_margin_label.grid(row=1, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_top_margin = Tooltip(self.top_margin_label, 
-            "Określa wielkość górnego marginesu\nwzględem wykrytej twarzy")
+            "Defines the size of the top margin\nrelative to the detected face")
 
         self.top_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.top_margin_slider_value)
         self.top_margin_slider.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
@@ -69,10 +68,10 @@ class InputsFrame(ctk.CTkFrame):
         self.top_margin_entry.insert(0, str(self.top_margin_slider.get()))
 
         # Bottom margin 
-        self.bottom_margin_label = ctk.CTkLabel(self, text="Dolny margines")
+        self.bottom_margin_label = ctk.CTkLabel(self, text="Bottom margin")
         self.bottom_margin_label.grid(row=2, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_bottom_margin = Tooltip(self.bottom_margin_label,
-            "Określa wielkość dolnego marginesu\nwzględem wykrytej twarzy")
+            "Defines the size of the bottom margin\nrelative to the detected face")
 
         self.bottom_margin_slider = ctk.CTkSlider(self, from_=0, to=1, command=self.bottom_margin_slider_value)
         self.bottom_margin_slider.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
@@ -87,10 +86,10 @@ class InputsFrame(ctk.CTkFrame):
         self.bottom_margin_entry.insert(0, str(self.bottom_margin_slider.get()))
 
         # Left Right margin
-        self.left_right_margin_label = ctk.CTkLabel(self, text="Lewo/Prawo margines")
+        self.left_right_margin_label = ctk.CTkLabel(self, text="Left/Right margin")
         self.left_right_margin_label.grid(row=3, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_left_right_margin = Tooltip(self.left_right_margin_label,
-            "Określa margines z lewej bądź prawej\nwzględem wykrytej twarzy")
+            "Defines the left or right margin\nrelative to the detected face")
 
         self.left_right_margin_slider = ctk.CTkSlider(self, from_=-1, to=1, command=self.left_right_slider_margin_value)
         self.left_right_margin_slider.grid(row=3, column=1, padx=10, pady=10, sticky="nsew")
@@ -105,9 +104,9 @@ class InputsFrame(ctk.CTkFrame):
         self.left_right_margin_entry.insert(0, str(self.left_right_margin_slider.get()))
 
         # Output size of an image 
-        self.output_size_label = ctk.CTkLabel(self, text="Wymiary zdjęcia(x,y)")
+        self.output_size_label = ctk.CTkLabel(self, text="Image size (x, y)")
         self.output_size_label.grid(row=4, column=0, padx=10, pady=10, sticky="ne")
-        self.tooltip_size_label = Tooltip(self.output_size_label,"Kolejno x-szerokość, y-wysokosć")
+        self.tooltip_size_label = Tooltip(self.output_size_label,"x-width, y-height")
 
 
         self.output_size_entryx = ctk.CTkEntry(self)
@@ -135,10 +134,9 @@ class InputsFrame(ctk.CTkFrame):
     
 
         # DPI change section
-        self.dpi_label = ctk.CTkLabel(self, text="Zmień DPI obrazu")
+        self.dpi_label = ctk.CTkLabel(self, text="Change image DPI")
         self.dpi_label.grid(row=5, column=0, padx=10, pady=10, sticky="ne")
-        self.tooltip_dpi_label = Tooltip(self.dpi_label,"Zmienia DPI wszystkich\n"
-                                                        "zdjęć w folderze na tą wartość")
+        self.tooltip_dpi_label = Tooltip(self.dpi_label,"Changes the DPI of all\nimages in the folder to this value")
 
         self.dpi_entry = ctk.CTkEntry(self)
         self.dpi_entry.grid(row=5, column=1, padx=10, pady=10, sticky="ne")
@@ -147,16 +145,16 @@ class InputsFrame(ctk.CTkFrame):
         else:
             self.dpi_entry.insert(0, "96")
 
-        self.crop_mode_label = ctk.CTkLabel(self, text="Tryb kadrowania")
+        self.crop_mode_label = ctk.CTkLabel(self, text="Cropping mode")
         self.crop_mode_label.grid(row=6, column=0, padx=10, pady=10, sticky="ne")
-        self.tooltip_crop_mode_label = Tooltip(self.crop_mode_label,"Wybierz tryb kadrowania\n"
-                                                                     "szybki bądź dokładny(wysokie zużycie mocy obliczeniowej)\n" \
-                                                                     "Uwaga tryb dokładny działa w inny sposób od szybkiego\n" \
-                                                                     "Parametry kadrowania działają inaczej w obu trybach\n")
+        self.tooltip_crop_mode_label = Tooltip(self.crop_mode_label,"Select cropping mode\n"
+                                               "fast or accurate (high computational usage)\n"
+                                               "Note: accurate mode works differently than fast mode\n"
+                                               "Cropping parameters behave differently in both modes\n")
 
-        self.crop_mode_segmented_button = ctk.CTkSegmentedButton(self, values=["Szybki", "Dokładny"], command=self.crop_mode_changed)
+        self.crop_mode_segmented_button = ctk.CTkSegmentedButton(self, values=["Fast", "Accurate"], command=self.crop_mode_changed)
         self.crop_mode_segmented_button.grid(row=6, column=1, padx=10, pady=10, sticky="nsew")
-        self.crop_mode_segmented_button.set("Szybki")  # Default value                
+        self.crop_mode_segmented_button.set("Fast")  # Default value                
 
         #self.change_dpi_button = ctk.CTkButton(self, text="Zmień DPI", command=self.change_image_dpi)
         #self.change_dpi_button.grid(row=3, column=2, padx=10, pady=10, sticky="nw")
@@ -345,9 +343,9 @@ class InputsFrame(ctk.CTkFrame):
     def crop_mode_changed(self,value=None):
         """Handle crop mode change."""
         selected_mode = self.crop_mode_segmented_button.get()
-        if selected_mode == "Szybki":
+        if selected_mode == "Fast":
             self.accurate_mode = False
-        elif selected_mode == "Dokładny":
+        elif selected_mode == "Accurate":
             self.accurate_mode = True
 
         if self.preview_frame:
@@ -395,23 +393,23 @@ class PathFrame(ctk.CTkFrame):
         self.grid_columnconfigure(1, weight=1)
 
         # Input folder path
-        self.input_label = ctk.CTkLabel(self, text="Folder Wejściowy:")
+        self.input_label = ctk.CTkLabel(self, text="Input Folder:")
         self.input_label.grid(row=0, column=0, padx=10, pady=10, sticky="w")
 
         self.input_entry = ctk.CTkEntry(self, width=300)
         self.input_entry.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
-        self.input_button = ctk.CTkButton(self, text="Wybierz", command=self.browse_input_folder)
+        self.input_button = ctk.CTkButton(self, text="Browse", command=self.browse_input_folder)
         self.input_button.grid(row=0, column=2, padx=10, pady=10)
 
         # Output folder path
-        self.output_label = ctk.CTkLabel(self, text="Folder Wyjściowy:")
+        self.output_label = ctk.CTkLabel(self, text="Output Folder:")
         self.output_label.grid(row=2, column=0, padx=10, pady=10, sticky="w")
 
         self.output_entry = ctk.CTkEntry(self, width=300)
         self.output_entry.grid(row=2, column=1, padx=10, pady=10, sticky="ew")
 
-        self.output_button = ctk.CTkButton(self, text="Wybierz", command=self.browse_output_folder)
+        self.output_button = ctk.CTkButton(self, text="Browse", command=self.browse_output_folder)
         self.output_button.grid(row=2, column=2, padx=10, pady=10)
 
         #Frame for displaying images
@@ -577,7 +575,7 @@ class PreviewFrame(ctk.CTkFrame):
         self.grid_propagate(False)
 
         # Preview button
-        self.preview_button = ctk.CTkButton(self, text="Podgląd", command=self.preview_image)
+        self.preview_button = ctk.CTkButton(self, text="Preview", command=self.preview_image)
         self.preview_button.grid(row=0, column=1, padx=10, pady=10, sticky="n")
 
         # Single label for preview image
@@ -603,7 +601,7 @@ class PreviewFrame(ctk.CTkFrame):
         self.fixed_height = 600
         
         # Add loading indicator
-        self.loading_label = ctk.CTkLabel(self, text="Przetwarzanie...")
+        self.loading_label = ctk.CTkLabel(self, text="Processing...")
         self.loading_label.grid(row=0, column=0, padx=10, pady=10, sticky="n")
         self.loading_label.grid_remove()  # Hide initially
         
@@ -738,42 +736,42 @@ class OutputFileNameFrame(ctk.CTkFrame):
         #Change output file names
         #Structure  entryNew - DropDown(nazwaPliku, Brak) - DropDown(brak, numeracja, data, data + numeracja) - rozszerzenie(bez zmian,jpg,png,webip itd itd)
         #main Label
-        self.output_file_name_label = ctk.CTkLabel(self, text="Zmiana nazwy pliku wyjściowego:")
+        self.output_file_name_label = ctk.CTkLabel(self, text="Change output file name:")
         self.output_file_name_label.grid(row=0, column=0, padx=10, pady=10, sticky="ne")
         self.tooltip_output_file_name = Tooltip(self.output_file_name_label,
-            "Zmienia nazwę plików wyjściowych\n"
-            "w zależności od wybranych opcji")
+            "Changes the names of output files\n"
+            "depending on the selected options")
         
         #NewNameEntry
-        self.output_file_name_entry_label = ctk.CTkLabel(self, text="Dopisek")
+        self.output_file_name_entry_label = ctk.CTkLabel(self, text="Prefix")
         self.output_file_name_entry_label.grid(row=1, column=0, padx=10, pady=10, sticky="nsew")
         self.tooltip_output_file_name_entry = Tooltip(self.output_file_name_entry_label,
-            "Dodaje ten tekst na początku\n"
-            "nazwy każdego pliku")
+            "Adds this text at the beginning\n"
+            "of each file name")
 
         self.output_file_name_entry = ctk.CTkEntry(self)
         self.output_file_name_entry.grid(row=2, column=0, padx=10, pady=10, sticky="nsew")
         self.output_file_name_entry.insert(0,"")
 
         #NameDropdown
-        self.output_file_name_name_dropdown_label = ctk.CTkLabel(self, text="Nazwa")
+        self.output_file_name_name_dropdown_label = ctk.CTkLabel(self, text="Name")
         self.output_file_name_name_dropdown_label.grid(row=1, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.output_file_name_name_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="Nazwa Pliku"), values=["Nazwa Pliku","Brak"])
+        self.output_file_name_name_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="File Name"), values=["File Name","None"])
         self.output_file_name_name_dropdown.grid(row=2, column=1, padx=10, pady=10, sticky="nsew")
 
         #NumberingDropdown
-        self.output_file_name_numbering_dropdown_label = ctk.CTkLabel(self, text="Numeracja")
+        self.output_file_name_numbering_dropdown_label = ctk.CTkLabel(self, text="Numbering")
         self.output_file_name_numbering_dropdown_label.grid(row=1, column=2, padx=10, pady=10, sticky="nsew")
 
-        self.output_file_name_numbering_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="Brak"), values=["Brak","Numeracja","Data","Data + Numeracja"])
+        self.output_file_name_numbering_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="None"), values=["None","Numbering","Date","Date + Numbering"])
         self.output_file_name_numbering_dropdown.grid(row=2, column=2, padx=10, pady=10, sticky="nsew")
 
         #ExtensionDropdown
-        self.output_file_name_extension_dropdown_label = ctk.CTkLabel(self, text="Rozszerzenie")
+        self.output_file_name_extension_dropdown_label = ctk.CTkLabel(self, text="Extension")
         self.output_file_name_extension_dropdown_label.grid(row=1, column=3, padx=10, pady=10, sticky="nsew")
 
-        self.output_file_name_extension_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="Bez zmian"), values=["Bez zmian","jpg", "jpeg", "png", "webp"])
+        self.output_file_name_extension_dropdown = ctk.CTkOptionMenu(self, variable=ctk.StringVar(value="No change"), values=["No change","jpg", "jpeg", "png", "webp"])
         self.output_file_name_extension_dropdown.grid(row=2, column=3, padx=10, pady=10, sticky="nsew")
 
     def get_naming_config(self):

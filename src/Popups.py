@@ -29,12 +29,12 @@ class ProgressBarPopup(ctk.CTkToplevel):
 # Derived classes
 class CroppingProgressBarPopup(ProgressBarPopup):
     def __init__(self, master):
-        super().__init__(master, "Kadrowanie", "Kadrowanie")
+        super().__init__(master, "Cropping", "Cropping")
 
 class RotateProgressBarPopup(ProgressBarPopup):
     def __init__(self, master):
-        super().__init__(master, "Obracanie", "Obracanie")
+        super().__init__(master, "Rotating", "Rotating")
 
 class FlipProgressBarPopup(ProgressBarPopup):
     def __init__(self, master):
-        super().__init__(master, "Przerzucanie", "Przerzucanie")
+        super().__init__(master, "Flipping", "Flipping")

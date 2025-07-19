@@ -61,8 +61,8 @@ def process_image(image_path,
         naming_config = {
             "prefix": "",
             "name": "",
-            "numbering_type": "Brak",
-            "extension": "Bez zmian"
+            "numbering_type": "None",
+            "extension": "No change"
         }
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -336,20 +336,20 @@ def generate_filename(original_filename,original_extension,naming_config,index=N
         if naming_config["prefix"]:
             parts.append(naming_config["prefix"])
 
-        if naming_config["name"] != "Brak":            
+        if naming_config["name"] != "None":            
             parts.append(original_filename)
 
-        if naming_config["numbering_type"] == "Numeracja":
+        if naming_config["numbering_type"] == "Numbering":
             parts.append(f"{index}" if index is not None else "1")
-        elif naming_config["numbering_type"] == "Data":
+        elif naming_config["numbering_type"] == "Date":
             parts.append(datetime.now().strftime("%Y_%m_%d"))
-        elif naming_config["numbering_type"] == "Data + Numeracja":
+        elif naming_config["numbering_type"] == "Date + Numbering":
             parts.append(datetime.now().strftime("%Y_%m_%d"))
             parts.append(f"{index}" if index is not None else "1")
 
         new_name = "_".join(parts)
 
-        if naming_config["extension"] == "Bez zmian":
+        if naming_config["extension"] == "No change":
             extension = original_extension
         else:
             extension = f".{naming_config['extension']}"

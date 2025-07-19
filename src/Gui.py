@@ -147,31 +147,31 @@ class App(ctk.CTk):
 
         #button for rotating all images 90 degrees
         self.rotate_90_button = ctk.CTkButton(self.transformations_frame,
-                                        text="Obróć o 90°",
+                                        text="Rotate 90°",
                                         command=lambda: self.rotate_images(90))
         self.rotate_90_button.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
 
         #button for rotating all images 180 degrees
         self.rotate_180_button = ctk.CTkButton(self.transformations_frame,
-                                        text="Obróć o 180°",
+                                        text="Rotate 180°",
                                         command=lambda: self.rotate_images(180))
         self.rotate_180_button.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
 
         #button for rotating all images 270 degrees
         self.rotate_270_button = ctk.CTkButton(self.transformations_frame,
-                                        text="Obróć o 270°",
+                                        text="Rotate 270°",
                                         command=lambda: self.rotate_images(270))
         self.rotate_270_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
         #button for flipping all images horizontally
         self.flip_button = ctk.CTkButton(self.transformations_frame,
-                                        text="Lustrzane",
+                                        text="Mirror",
                                         command=self.flip_images)
         self.flip_button.grid(row=0, column=3, padx=5, pady=5, sticky="ew")        
         
         #cropping button
         self.crop_button = ctk.CTkButton(self.toolbar_frame, 
-                                       text="Skadruj",
+                                       text="Crop",
                                        font=("Arial", 16, "bold"),
                                        command=self.CropButton)
         self.crop_button.grid(row=0, column=3, padx=5, pady=5, sticky="e")
@@ -192,9 +192,9 @@ class App(ctk.CTk):
         global_dpi = self.input_data_frame.dpi_entry.get()
         #check if crucial arguments are provided
         if not self.path_frame.input_entry.get():
-            messagebox.showwarning("Nie można kontynuować","Wprowadź folder wejściowy")
+            messagebox.showwarning("Cannot continue", "Please enter the input folder")
         elif not self.path_frame.output_entry.get():
-            messagebox.showwarning("Nie można kontynuować", "Wprowadź folder wyjściowy")
+            messagebox.showwarning("Cannot continue", "Please enter the output folder")
 
         else:
             cropper = CropperClass(input_path=self.path_frame.input_entry.get(),
@@ -233,7 +233,7 @@ class App(ctk.CTk):
         def rotate_process():
             try:
                 if not self.path_frame.input_entry.get():
-                    messagebox.showwarning("Nie można kontynuować","Wprowadź folder wejściowy")
+                    messagebox.showwarning("Cannot continue", "Please enter the input folder")
                     pass
                 else:
                     input_folder = self.path_frame.input_entry.get()
@@ -300,7 +300,7 @@ class App(ctk.CTk):
         def flip_process():
             try:
                 if not self.path_frame.input_entry.get():
-                    messagebox.showwarning("Nie można kontynuować","Wprowadź folder wejściowy")
+                    messagebox.showwarning("Cannot continue", "Please enter the input folder")
                     pass
                 else:
                     input_folder = self.path_frame.input_entry.get()

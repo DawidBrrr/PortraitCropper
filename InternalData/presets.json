@@ -1,11 +1,11 @@
 {
     "Preset1": {
         "name": "Preset1",
-        "output_size_x": 1080,
-        "output_size_y": 1080,
-        "dpi": 96,
-        "top_margin": 0.5,
-        "bottom_margin": 0.51,
+        "output_size_x": 400,
+        "output_size_y": 500,
+        "dpi": 300,
+        "top_margin": 0.41,
+        "bottom_margin": 0.53,
         "left_right_margin": 0.0,
         "unit": "px"
     },
