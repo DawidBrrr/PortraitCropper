@@ -10,8 +10,8 @@ After configuring the desired parameters, it will process all images in the spec
 
 - **Face Detection:** Automatically detects faces in images for precise cropping.
 - **Margin Configuration:** Set top, bottom, left, and right margins relative to detected faces.
-- **Sensitivity Control:** Adjust cropping sensitivity with preset multipliers (x1, x2, x5, x10).
-- **Batch Processing:** Crop multiple images at once.
+- **Sensitivity Control:** Fine-tune the responsiveness of the slider and buttons using preset sensitivity levels (x1, x2, x5, x10).
+- **Batch Processing:** Processing multiple images at once to speed up the process.
 - **Accurate Mode:** Two-stage cropping for high-quality results.
 - **Custom Naming:** Flexible output file naming options.
 - **DPI Adjustment:** Change the DPI of output images.
