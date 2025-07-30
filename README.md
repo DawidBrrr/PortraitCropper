@@ -30,7 +30,7 @@ After configuring the desired parameters, it will process all images in the spec
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/PortraitCropper.git
+   git clone https://github.com/DawidBrrr/PortraitCropper.git
    cd PortraitCropper
    ```
 
